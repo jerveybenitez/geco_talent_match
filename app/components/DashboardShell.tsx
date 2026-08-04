@@ -9,6 +9,7 @@ interface DashboardShellProps {
     name: string;
     email: string;
     role: "superadmin" | "admin" | "user";
+    image: string | null;
     countriesHandled: { countryCode: string }[];
   };
   children: React.ReactNode;

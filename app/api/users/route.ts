@@ -8,11 +8,11 @@ export async function POST(request: Request) {
   if (!sessionUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (sessionUser.role === "user") {
+  if (sessionUser.role !== "superadmin") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { name, email, password, phone, role, countryIds } = await request.json();
+  const { name, email, password, phone, role, countryIds, image } = await request.json();
 
   if (!name || !email || !password) {
     return NextResponse.json({ error: "Name, email and password are required" }, { status: 400 });
@@ -22,6 +22,9 @@ export async function POST(request: Request) {
   }
   if (!["superadmin", "admin", "user"].includes(role)) {
     return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+  }
+  if (role !== "superadmin" && (!countryIds || countryIds.length === 0)) {
+    return NextResponse.json({ error: "At least one country must be assigned" }, { status: 400 });
   }
 
   const existing = await prisma.user.findUnique({ where: { email } });
@@ -37,6 +40,7 @@ export async function POST(request: Request) {
       email,
       hashedPassword,
       phone: phone || null,
+      image: image || null,
       role,
       active: true,
       countriesHandled: {

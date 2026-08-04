@@ -20,22 +20,26 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (!sessionUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (sessionUser.role === "user") {
+  if (sessionUser.role !== "superadmin") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { id } = await params;
   const body = await request.json();
-  const { name, email, phone, role, countryIds, active } = body as {
+  const { name, email, phone, role, countryIds, active, image } = body as {
     name?: string;
     email?: string;
     phone?: string | null;
     role?: string;
     countryIds?: string[];
     active?: boolean;
+    image?: string | null;
   };
 
-  const target = await prisma.user.findUnique({ where: { id } });
+  const target = await prisma.user.findUnique({
+    where: { id },
+    select: { email: true, role: true, _count: { select: { countriesHandled: true } } },
+  });
   if (!target) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
@@ -51,6 +55,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Invalid role" }, { status: 400 });
   }
 
+  const effectiveRole = role ?? target.role;
+  const effectiveCountryCount = countryIds !== undefined ? countryIds.length : target._count.countriesHandled;
+  if (effectiveRole !== "superadmin" && effectiveCountryCount === 0) {
+    return NextResponse.json({ error: "At least one country must be assigned" }, { status: 400 });
+  }
+
   const user = await prisma.user.update({
     where: { id },
     data: {
@@ -59,6 +69,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       ...(phone !== undefined && { phone }),
       ...(role !== undefined && { role: role as "superadmin" | "admin" | "user" }),
       ...(active !== undefined && { active }),
+      ...(image !== undefined && { image }),
       ...(countryIds !== undefined && {
         countriesHandled: { set: countryIds.map((cid) => ({ id: cid })) },
       }),

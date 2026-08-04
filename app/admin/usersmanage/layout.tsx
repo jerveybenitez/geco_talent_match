@@ -16,12 +16,17 @@ export default async function UsersmanageLayout({ children }: { children: React.
       name: true,
       email: true,
       role: true,
+      image: true,
       countriesHandled: { select: { countryCode: true } },
     },
   });
 
   if (!user) {
     redirect("/");
+  }
+
+  if (user.role !== "superadmin") {
+    redirect("/admin/dashboard");
   }
 
   return <DashboardShell user={user}>{children}</DashboardShell>;

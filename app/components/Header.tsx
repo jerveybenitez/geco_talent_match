@@ -16,6 +16,7 @@ interface HeaderUser {
   name: string;
   email: string;
   role: "superadmin" | "admin" | "user";
+  image: string | null;
   countriesHandled: { countryCode: string }[];
 }
 
@@ -34,7 +35,9 @@ const roleBadge = {
 export function Header({ sidebarOpen, onToggleSidebar, user }: HeaderProps) {
   const router = useRouter();
   const badge = roleBadge[user.role];
-  const countryCodes = user.countriesHandled.map((c) => c.countryCode).join(", ");
+  const countryCodes = user.role === "superadmin"
+    ? "All Regions"
+    : user.countriesHandled.map((c) => c.countryCode).join(", ");
 
   const handleLogout = async () => {
     await fetch("/api/logout", { method: "POST" });
@@ -67,7 +70,13 @@ export function Header({ sidebarOpen, onToggleSidebar, user }: HeaderProps) {
           <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 hover:bg-white/10 rounded-lg px-3 py-2 transition-colors">
-                  <img src="/logos/geco-logo.png" alt={user.name} className="w-10 h-10 rounded-full object-cover border-2 border-white/20"/>
+                  {user.image ? (
+                    <img src={user.image} alt={user.name} className="w-10 h-10 rounded-full object-cover border-2 border-white/20"/>
+                  ) : (
+                    <div className="w-10 h-10 rounded-full border-2 border-white/20 bg-white/10 flex items-center justify-center text-sm font-medium text-white">
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <div className="text-right hidden md:block">
                     <p className="text-sm font-medium text-white">{user.name}</p>
                     <div className="flex items-center gap-1 text-xs text-white/80">

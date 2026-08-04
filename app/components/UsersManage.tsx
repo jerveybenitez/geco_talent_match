@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -39,6 +39,12 @@ const roleBadge: Record<Role, { label: string; className: string }> = {
   superadmin: { label: "Super Admin", className: "bg-red-500 hover:bg-red-600 text-white" },
   admin: { label: "Admin", className: "bg-blue-500 hover:bg-blue-600 text-white" },
   user: { label: "Talent", className: "bg-green-500 hover:bg-green-600 text-white" },
+};
+
+const rolePriority: Record<Role, number> = {
+  superadmin: 0,
+  admin: 1,
+  user: 2,
 };
 
 function countryFlag(countryCode: string) {
@@ -82,6 +88,34 @@ export function UsersManage({ users: initialUsers, countries }: UsersManageProps
   const [formData, setFormData] = useState(emptyFormData);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setFormError(null);
+    setIsUploadingPhoto(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+
+      const res = await fetch("/api/uploads", { method: "POST", body });
+      const data = await res.json();
+      if (!res.ok) {
+        setFormError(data.error ?? "Failed to upload photo");
+        return;
+      }
+
+      setFormData((prev) => ({ ...prev, image: data.url }));
+    } catch {
+      setFormError("Failed to upload photo");
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
 
   const handleToggleStatus = async (userId: string) => {
     const user = users.find((u) => u.id === userId);
@@ -121,6 +155,11 @@ export function UsersManage({ users: initialUsers, countries }: UsersManageProps
   const handleSave = async () => {
     setFormError(null);
 
+    if (formData.role !== "superadmin" && formData.countryIds.length === 0) {
+      setFormError("Please assign at least one country");
+      return;
+    }
+
     if (editingUser) {
       setIsSaving(true);
       try {
@@ -131,6 +170,7 @@ export function UsersManage({ users: initialUsers, countries }: UsersManageProps
             name: formData.name,
             email: formData.email,
             phone: formData.phone || null,
+            image: formData.image,
             role: formData.role,
             countryIds: formData.role === "superadmin"
               ? countries.map((c) => c.id)
@@ -178,6 +218,7 @@ export function UsersManage({ users: initialUsers, countries }: UsersManageProps
           email: formData.email,
           password: formData.password,
           phone: formData.phone || null,
+          image: formData.image,
           role: formData.role,
           countryIds: formData.role === "superadmin"
             ? countries.map((c) => c.id)
@@ -214,7 +255,7 @@ export function UsersManage({ users: initialUsers, countries }: UsersManageProps
     const matchesStatus = statusFilter === "all" || (statusFilter === "Active" ? user.active : !user.active);
 
     return matchesSearch && matchesRole && matchesCountry && matchesStatus;
-  });
+  }).sort((a, b) => rolePriority[a.role] - rolePriority[b.role]);
 
   return (
     <div className="space-y-6">
@@ -439,9 +480,22 @@ export function UsersManage({ users: initialUsers, countries }: UsersManageProps
                       <Upload className="h-8 w-8 text-gray-400" />
                     </div>
                   )}
-                  <Button variant="outline" size="sm">
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    className="hidden"
+                    onChange={handlePhotoSelected}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isUploadingPhoto}
+                    onClick={() => photoInputRef.current?.click()}
+                  >
                     <Upload className="mr-2 h-4 w-4" />
-                    Upload Photo
+                    {isUploadingPhoto ? "Uploading..." : "Upload Photo"}
                   </Button>
                 </div>
               </div>
@@ -641,6 +695,7 @@ export function UsersManage({ users: initialUsers, countries }: UsersManageProps
               onClick={handleSave}
               disabled={
                 isSaving ||
+                isUploadingPhoto ||
                 !formData.name ||
                 !formData.email ||
                 (!editingUser && (!formData.password || !formData.confirmPassword))

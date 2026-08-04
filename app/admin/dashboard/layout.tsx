@@ -16,6 +16,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       name: true,
       email: true,
       role: true,
+      image: true,
       countriesHandled: { select: { countryCode: true } },
     },
   });
