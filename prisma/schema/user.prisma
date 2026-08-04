@@ -1,0 +1,60 @@
+enum Role {
+    superadmin
+    admin
+    user
+}
+
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  hashedPassword String
+  name String
+  dateCreate DateTime @default(now())
+  phone String?
+  countriesHandled Country[] @relation("UserCountriesHandled")
+  consultant Consultant?
+  role Role @default(user)
+  sessions       Session[]
+  active Boolean @default(true)
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Consultant {
+  id String @id @default(cuid())
+  userId String @unique
+  user User @relation(fields: [userId], references: [id])
+  active Boolean @default(true)
+  dateCreate DateTime @default(now())
+  contracts Contracts[]
+  workHistory WorkHistory[]
+}
+
+model Contracts {
+  id String @id @default(cuid())
+  consultantId String
+  consultant Consultant @relation(fields: [consultantId], references: [id])
+  startDate DateTime
+  endDate DateTime
+  dateCreate DateTime @default(now())
+  active Boolean @default(true)
+}
+
+model WorkHistory {
+  id String @id @default(cuid())
+  consultantId String
+  consultant Consultant @relation(fields: [consultantId], references: [id])
+  companyName String
+  position String
+  description String?
+  startDate DateTime
+  endDate DateTime?
+  isCurrent Boolean @default(false)
+  active Boolean @default(true)
+}
