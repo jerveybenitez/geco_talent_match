@@ -6,101 +6,71 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "./ui/dialog";
-import {
-  Plus,
-  Search,
-  Edit,
-  UserX,
-  Upload,
-  CheckCircle2,
-  Lock,
-} from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
+import { Plus, Search, Edit, UserX, Upload, CheckCircle2, Lock } from "lucide-react";
+
+type Role = "superadmin" | "admin" | "user";
+
+interface Country {
+  id: string;
+  name: string;
+  countryCode: string;
+}
 
 interface User {
   id: string;
   name: string;
   email: string;
-  role: "Super Admin" | "Admin";
-  countries: ("SG" | "PH" | "MY" | "TH" | "ID" | "VN" | "ALL")[];
-  status: "Active" | "Inactive";
-  lastLogin: string;
-  photo: string;
-  phone?: string;
+  phone: string | null;
+  role: Role;
+  active: boolean;
+  image: string | null;
+  countriesHandled: Country[];
+  lastLogin: string | Date | null;
 }
 
-const mockUsers: User[] = [
-  {
-    id: "1",
-    name: "Tricia Almodiente",
-    email: "tricia.almodiente@geco.asia",
-    role: "Super Admin",
-    countries: ["ALL"],
-    status: "Active",
-    lastLogin: "2026-02-11 09:30",
-    photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400",
-    phone: "+63 917 123 4567"
-  },
-  {
-    id: "2",
-    name: "Gareth Tan",
-    email: "gareth.tan@geco.asia",
-    role: "Admin",
-    countries: ["SG", "MY"],
-    status: "Active",
-    lastLogin: "2026-02-11 08:15",
-    photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
-    phone: "+65 9123 4567"
-  },
-  {
-    id: "3",
-    name: "Maria Santos",
-    email: "maria.santos@geco.asia",
-    role: "Admin",
-    countries: ["PH"],
-    status: "Active",
-    lastLogin: "2026-02-10 16:45",
-    photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400",
-    phone: "+63 917 234 5678"
-  },
-  {
-    id: "4",
-    name: "Ahmad Rahman",
-    email: "ahmad.rahman@geco.asia",
-    role: "Admin",
-    countries: ["MY", "TH", "ID"],
-    status: "Active",
-    lastLogin: "2026-02-11 07:20",
-    photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400",
-    phone: "+60 12 345 6789"
-  },
-];
+interface UsersManageProps {
+  users: User[];
+  countries: Country[];
+}
 
-const countryNames: Record<string, string> = {
-  SG: "Singapore",
-  PH: "Philippines",
-  MY: "Malaysia",
-  TH: "Thailand",
-  ID: "Indonesia",
-  VN: "Vietnam",
-  ALL: "All Countries"
+const roleBadge: Record<Role, { label: string; className: string }> = {
+  superadmin: { label: "Super Admin", className: "bg-red-500 hover:bg-red-600 text-white" },
+  admin: { label: "Admin", className: "bg-blue-500 hover:bg-blue-600 text-white" },
+  user: { label: "Talent", className: "bg-green-500 hover:bg-green-600 text-white" },
 };
 
-export function UsersManage() {
-  const [users, setUsers] = useState<User[]>(mockUsers);
+function countryFlag(countryCode: string) {
+  return countryCode
+    .toUpperCase()
+    .replace(/./g, (char) => String.fromCodePoint(127397 + char.charCodeAt(0)));
+}
+
+function formatLastLogin(lastLogin: string | Date | null) {
+  if (!lastLogin) return "Never";
+  return new Date(lastLogin).toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+const emptyFormData = {
+  name: "",
+  email: "",
+  phone: "",
+  password: "",
+  confirmPassword: "",
+  role: "admin" as Role,
+  countryIds: [] as string[],
+  image: null as string | null,
+};
+
+export function UsersManage({ users: initialUsers, countries }: UsersManageProps) {
+  const [users, setUsers] = useState<User[]>(initialUsers);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [countryFilter, setCountryFilter] = useState<string>("all");
@@ -108,90 +78,141 @@ export function UsersManage() {
   const [showAddUser, setShowAddUser] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [successAction, setSuccessAction] = useState<"created" | "updated">("created");
+  const [formData, setFormData] = useState(emptyFormData);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Form state
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    role: "Admin" as User["role"],
-    countries: ["SG"] as User["countries"],
-    photo: ""
-  });
+  const handleToggleStatus = async (userId: string) => {
+    const user = users.find((u) => u.id === userId);
+    if (!user) return;
 
-  const getRoleBadgeColor = (role: User["role"]) => {
-    switch (role) {
-      case "Super Admin":
-        return "bg-red-500 hover:bg-red-600 text-white";
-      case "Admin":
-        return "bg-blue-500 hover:bg-blue-600 text-white";
-      default:
-        return "bg-gray-500";
+    const nextActive = !user.active;
+    try {
+      const res = await fetch(`/api/users/${userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: nextActive }),
+      });
+      if (!res.ok) return;
+
+      setUsers(users.map((u) => (u.id === userId ? { ...u, active: nextActive } : u)));
+    } catch {
+      // leave status unchanged if the request fails
     }
-  };
-
-  const handleToggleStatus = (userId: string) => {
-    setUsers(users.map(user => 
-      user.id === userId 
-        ? { ...user, status: user.status === "Active" ? "Inactive" : "Active" as "Active" | "Inactive" }
-        : user
-    ));
   };
 
   const handleEdit = (user: User) => {
     setEditingUser(user);
+    setFormError(null);
     setFormData({
       name: user.name,
       email: user.email,
-      phone: user.phone || "",
+      phone: user.phone ?? "",
+      password: "",
+      confirmPassword: "",
       role: user.role,
-      countries: user.countries,
-      photo: user.photo
+      countryIds: user.countriesHandled.map((c) => c.id),
+      image: user.image,
     });
     setShowAddUser(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    setFormError(null);
+
     if (editingUser) {
-      // Update existing user
-      setUsers(users.map(user => 
-        user.id === editingUser.id 
-          ? { ...user, ...formData }
-          : user
-      ));
-    } else {
-      // Create new user
-      const newUser: User = {
-        id: (users.length + 1).toString(),
-        ...formData,
-        status: "Active",
-        lastLogin: "Never",
-      };
-      setUsers([...users, newUser]);
+      setIsSaving(true);
+      try {
+        const res = await fetch(`/api/users/${editingUser.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone || null,
+            role: formData.role,
+            countryIds: formData.role === "superadmin"
+              ? countries.map((c) => c.id)
+              : formData.countryIds,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          setFormError(data.error ?? "Failed to update user");
+          return;
+        }
+
+        setUsers(users.map((user) => (user.id === editingUser.id ? { ...user, ...data } : user)));
+        setShowAddUser(false);
+        setEditingUser(null);
+        setFormData(emptyFormData);
+        setSuccessAction("updated");
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+      } catch {
+        setFormError("Failed to update user");
+      } finally {
+        setIsSaving(false);
+      }
+      return;
     }
-    
-    setShowAddUser(false);
-    setEditingUser(null);
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      role: "Admin",
-      countries: ["SG"],
-      photo: ""
-    });
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+
+    if (formData.password !== formData.confirmPassword) {
+      setFormError("Passwords do not match");
+      return;
+    }
+    if (formData.password.length < 8) {
+      setFormError("Password must be at least 8 characters");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          phone: formData.phone || null,
+          role: formData.role,
+          countryIds: formData.role === "superadmin"
+            ? countries.map((c) => c.id)
+            : formData.countryIds,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setFormError(data.error ?? "Failed to create user");
+        return;
+      }
+
+      setUsers([...users, data as User]);
+      setShowAddUser(false);
+      setEditingUser(null);
+      setFormData(emptyFormData);
+      setSuccessAction("created");
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch {
+      setFormError("Failed to create user");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = 
+    const matchesSearch =
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    const matchesCountry = countryFilter === "all" || user.countries.includes(countryFilter);
-    const matchesStatus = statusFilter === "all" || user.status === statusFilter;
-    
+    const matchesCountry = countryFilter === "all" || user.countriesHandled.some((c) => c.id === countryFilter);
+    const matchesStatus = statusFilter === "all" || (statusFilter === "Active" ? user.active : !user.active);
+
     return matchesSearch && matchesRole && matchesCountry && matchesStatus;
   });
 
@@ -207,14 +228,8 @@ export function UsersManage() {
         </div>
         <Button onClick={() => {
           setEditingUser(null);
-          setFormData({
-            name: "",
-            email: "",
-            phone: "",
-            role: "Admin",
-            countries: ["SG"],
-            photo: ""
-          });
+          setFormData(emptyFormData);
+          setFormError(null);
           setShowAddUser(true);
         }}>
           <Plus className="mr-2 h-4 w-4" />
@@ -245,8 +260,9 @@ export function UsersManage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Roles</SelectItem>
-                  <SelectItem value="Super Admin">Super Admin</SelectItem>
-                  <SelectItem value="Admin">Admin</SelectItem>
+                  <SelectItem value="superadmin">Super Admin</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="user">Talent</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -256,12 +272,11 @@ export function UsersManage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Countries</SelectItem>
-                  <SelectItem value="SG">Singapore</SelectItem>
-                  <SelectItem value="PH">Philippines</SelectItem>
-                  <SelectItem value="MY">Malaysia</SelectItem>
-                  <SelectItem value="TH">Thailand</SelectItem>
-                  <SelectItem value="ID">Indonesia</SelectItem>
-                  <SelectItem value="VN">Vietnam</SelectItem>
+                  {countries.map((country) => (
+                    <SelectItem key={country.id} value={country.id}>
+                      {country.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 
@@ -299,11 +314,17 @@ export function UsersManage() {
               <div key={user.id} className="grid grid-cols-12 gap-4 items-center py-3 border-b last:border-b-0 hover:bg-gray-50 transition-colors">
                 {/* User Info */}
                 <div className="col-span-3 flex items-center gap-3">
-                  <img
-                    src={user.photo}
-                    alt={user.name}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
+                  {user.image ? (
+                    <img
+                      src={user.image}
+                      alt={user.name}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-500">
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <div>
                     <p className="font-medium">{user.name}</p>
                     <p className="text-xs text-muted-foreground">{user.email}</p>
@@ -312,20 +333,20 @@ export function UsersManage() {
 
                 {/* Role */}
                 <div className="col-span-2">
-                  <Badge className={getRoleBadgeColor(user.role)}>
-                    {user.role}
+                  <Badge className={roleBadge[user.role].className}>
+                    {roleBadge[user.role].label}
                   </Badge>
                 </div>
 
                 {/* Country */}
                 <div className="col-span-2">
-                  {user.countries.includes("ALL") ? (
+                  {countries.length > 0 && user.countriesHandled.length === countries.length ? (
                     <Badge variant="outline">All Countries</Badge>
                   ) : (
                     <div className="flex flex-wrap gap-1">
-                      {user.countries.map((code) => (
-                        <Badge key={code} variant="outline" className="text-xs">
-                          {code}
+                      {user.countriesHandled.map((country) => (
+                        <Badge key={country.id} variant="outline" className="text-xs">
+                          {country.countryCode}
                         </Badge>
                       ))}
                     </div>
@@ -334,7 +355,7 @@ export function UsersManage() {
 
                 {/* Last Login */}
                 <div className="col-span-2 text-sm text-muted-foreground">
-                  {user.lastLogin}
+                  {formatLastLogin(user.lastLogin)}
                 </div>
 
                 {/* Status Toggle */}
@@ -342,12 +363,12 @@ export function UsersManage() {
                   <button
                     onClick={() => handleToggleStatus(user.id)}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      user.status === "Active" ? "bg-green-500" : "bg-gray-300"
+                      user.active ? "bg-green-500" : "bg-gray-300"
                     }`}
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        user.status === "Active" ? "translate-x-6" : "translate-x-1"
+                        user.active ? "translate-x-6" : "translate-x-1"
                       }`}
                     />
                   </button>
@@ -392,8 +413,8 @@ export function UsersManage() {
               {editingUser ? "Edit User" : "Add New User"}
             </DialogTitle>
             <DialogDescription>
-              {editingUser 
-                ? "Update user information and permissions" 
+              {editingUser
+                ? "Update user information and permissions"
                 : "Create a new user account with role and country assignment"}
             </DialogDescription>
           </DialogHeader>
@@ -402,14 +423,14 @@ export function UsersManage() {
             {/* Section 1 - Basic Info */}
             <div className="space-y-4">
               <h3 className="font-semibold text-sm">Basic Information</h3>
-              
+
               {/* Profile Photo */}
               <div>
                 <Label>Profile Photo</Label>
                 <div className="mt-2 flex items-center gap-4">
-                  {formData.photo ? (
+                  {formData.image ? (
                     <img
-                      src={formData.photo}
+                      src={formData.image}
                       alt="Profile"
                       className="w-20 h-20 rounded-full object-cover"
                     />
@@ -461,36 +482,70 @@ export function UsersManage() {
                   className="mt-1"
                 />
               </div>
+
+              {/* Password (create only) */}
+              {!editingUser && (
+                <>
+                  <div>
+                    <Label htmlFor="password">Password *</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      placeholder="At least 8 characters"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={formData.confirmPassword}
+                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                      placeholder="Re-enter password"
+                      className="mt-1"
+                    />
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Section 2 - Role */}
             <div className="space-y-4 pt-4 border-t">
               <h3 className="font-semibold text-sm">Role & Permissions</h3>
-              
+
               <div>
                 <Label htmlFor="role">Role *</Label>
                 <Select
                   value={formData.role}
-                  onValueChange={(value) => setFormData({ 
-                    ...formData, 
-                    role: value as User["role"],
-                    countries: value === "Super Admin" ? ["ALL"] : formData.countries
+                  onValueChange={(value) => setFormData({
+                    ...formData,
+                    role: value as Role,
+                    countryIds: value === "superadmin" ? countries.map((c) => c.id) : formData.countryIds,
                   })}
                 >
                   <SelectTrigger className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Super Admin">
+                    <SelectItem value="superadmin">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-red-500"></div>
                         Super Admin
                       </div>
                     </SelectItem>
-                    <SelectItem value="Admin">
+                    <SelectItem value="admin">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                         Admin
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="user">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        Talent
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -499,37 +554,27 @@ export function UsersManage() {
             </div>
 
             {/* Section 3 - Country Assignment */}
-            {formData.role !== "Super Admin" && (
+            {formData.role !== "superadmin" && (
               <div className="space-y-4 pt-4 border-t">
                 <h3 className="font-semibold text-sm">Country Assignment</h3>
-                
+
                 <div>
                   <Label>Assign Countries * (Multiple Selection)</Label>
                   <p className="text-xs text-muted-foreground mb-3">
                     Select one or more countries the user can access
                   </p>
                   <div className="grid grid-cols-2 gap-3 mt-2">
-                    {[
-                      { code: "SG", name: "Singapore", flag: "🇸🇬" },
-                      { code: "PH", name: "Philippines", flag: "🇵🇭" },
-                      { code: "MY", name: "Malaysia", flag: "🇲🇾" },
-                      { code: "TH", name: "Thailand", flag: "🇹🇭" },
-                      { code: "ID", name: "Indonesia", flag: "🇮🇩" },
-                      { code: "VN", name: "Vietnam", flag: "🇻🇳" },
-                    ].map((country) => {
-                      const isSelected = formData.countries.includes(country.code as any);
+                    {countries.map((country) => {
+                      const isSelected = formData.countryIds.includes(country.id);
                       return (
                         <button
-                          key={country.code}
+                          key={country.id}
                           type="button"
                           onClick={() => {
-                            const newCountries = isSelected
-                              ? formData.countries.filter(c => c !== country.code)
-                              : [...formData.countries.filter(c => c !== "ALL"), country.code];
-                            setFormData({ 
-                              ...formData, 
-                              countries: newCountries.length > 0 ? newCountries as User["countries"] : ["SG"]
-                            });
+                            const newCountryIds = isSelected
+                              ? formData.countryIds.filter((id) => id !== country.id)
+                              : [...formData.countryIds, country.id];
+                            setFormData({ ...formData, countryIds: newCountryIds });
                           }}
                           className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all ${
                             isSelected
@@ -546,25 +591,28 @@ export function UsersManage() {
                           </div>
                           <div className="flex-1 text-left">
                             <div className="text-sm font-medium">
-                              {country.flag} {country.name}
+                              {countryFlag(country.countryCode)} {country.name}
                             </div>
-                            <div className="text-xs text-muted-foreground">{country.code}</div>
+                            <div className="text-xs text-muted-foreground">{country.countryCode}</div>
                           </div>
                         </button>
                       );
                     })}
                   </div>
-                  {formData.countries.length > 0 && !formData.countries.includes("ALL") && (
+                  {formData.countryIds.length > 0 && (
                     <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
                       <p className="text-xs font-medium text-blue-900 mb-1">
-                        Selected: {formData.countries.length} {formData.countries.length === 1 ? "country" : "countries"}
+                        Selected: {formData.countryIds.length} {formData.countryIds.length === 1 ? "country" : "countries"}
                       </p>
                       <div className="flex flex-wrap gap-1">
-                        {formData.countries.map((code) => (
-                          <Badge key={code} variant="secondary" className="text-xs">
-                            {countryNames[code]}
-                          </Badge>
-                        ))}
+                        {formData.countryIds.map((id) => {
+                          const country = countries.find((c) => c.id === id);
+                          return country ? (
+                            <Badge key={id} variant="secondary" className="text-xs">
+                              {country.name}
+                            </Badge>
+                          ) : null;
+                        })}
                       </div>
                     </div>
                   )}
@@ -573,6 +621,10 @@ export function UsersManage() {
             )}
           </div>
 
+          {formError && (
+            <p className="text-sm text-red-600 pt-2">{formError}</p>
+          )}
+
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-6 border-t">
             <Button
@@ -580,15 +632,23 @@ export function UsersManage() {
               onClick={() => {
                 setShowAddUser(false);
                 setEditingUser(null);
+                setFormError(null);
               }}
             >
               Cancel
             </Button>
             <Button
               onClick={handleSave}
-              disabled={!formData.name || !formData.email}
+              disabled={
+                isSaving ||
+                !formData.name ||
+                !formData.email ||
+                (!editingUser && (!formData.password || !formData.confirmPassword))
+              }
             >
-              {editingUser ? "Save Changes" : "Create User"}
+              {isSaving
+                ? (editingUser ? "Saving..." : "Creating...")
+                : (editingUser ? "Save Changes" : "Create User")}
             </Button>
           </div>
         </DialogContent>
@@ -602,11 +662,11 @@ export function UsersManage() {
               <CheckCircle2 className="h-8 w-8 text-green-600" />
             </div>
             <h3 className="text-xl font-bold mb-2">
-              {editingUser ? "User Updated Successfully!" : "User Created Successfully!"}
+              {successAction === "updated" ? "User Updated Successfully!" : "User Created Successfully!"}
             </h3>
             <p className="text-sm text-muted-foreground mb-6">
-              {editingUser 
-                ? "User information has been updated" 
+              {successAction === "updated"
+                ? "User information has been updated"
                 : "The new user account has been created and they will receive a welcome email"}
             </p>
             <Button onClick={() => setShowSuccess(false)}>

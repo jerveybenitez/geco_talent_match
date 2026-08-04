@@ -9,6 +9,7 @@ model User {
   email String @unique
   hashedPassword String
   name String
+  image String?
   dateCreate DateTime @default(now())
   phone String?
   countriesHandled Country[] @relation("UserCountriesHandled")

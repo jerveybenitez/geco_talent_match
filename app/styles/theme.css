@@ -204,6 +204,10 @@
     background-color: var(--border);
   }
 
+  .bg-background {
+    background-color: var(--background);
+  }
+
   .bg-secondary {
     background-color: var(--secondary);
   }
