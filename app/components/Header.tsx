@@ -12,19 +12,39 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 
+interface HeaderUser {
+  name: string;
+  email: string;
+  role: "superadmin" | "admin" | "user";
+  countriesHandled: { countryCode: string }[];
+}
+
 interface HeaderProps {
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
+  user: HeaderUser;
 }
 
-export function Header({ sidebarOpen, onToggleSidebar }: HeaderProps) {
+const roleBadge = {
+  superadmin: { label: "Super Admin", className: "bg-red-500 text-white" },
+  admin: { label: "Admin", className: "bg-blue-500 text-white" },
+  user: { label: "Talent", className: "bg-green-500 text-white" },
+} as const;
+
+export function Header({ sidebarOpen, onToggleSidebar, user }: HeaderProps) {
   const router = useRouter();
+  const badge = roleBadge[user.role];
+  const countryCodes = user.countriesHandled.map((c) => c.countryCode).join(", ");
 
   const handleLogout = async () => {
     await fetch("/api/logout", { method: "POST" });
-    router.push("/logged-out");
+    router.push("/logout");
     router.refresh();
   };
+
+  const handleUsersManagement = () => {
+    router.push("/admin/usersmanage");
+  }
 
   return (
     
@@ -47,15 +67,15 @@ export function Header({ sidebarOpen, onToggleSidebar }: HeaderProps) {
           <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 hover:bg-white/10 rounded-lg px-3 py-2 transition-colors">
-                  <img src="/logos/geco-logo.png" alt="Jervey" className="w-10 h-10 rounded-full object-cover border-2 border-white/20"/>
+                  <img src="/logos/geco-logo.png" alt={user.name} className="w-10 h-10 rounded-full object-cover border-2 border-white/20"/>
                   <div className="text-right hidden md:block">
-                    <p className="text-sm font-medium text-white">Jervey</p>
+                    <p className="text-sm font-medium text-white">{user.name}</p>
                     <div className="flex items-center gap-1 text-xs text-white/80">
-                      <Badge className={`orange text-white text-[10px] px-1.5 py-0`}>
-                        Super Admin
+                      <Badge className={`${badge.className} text-[10px] px-1.5 py-0`}>
+                        {badge.label}
                       </Badge>
                       <span>•</span>
-                      <span>All</span>
+                      <span>{countryCodes}</span>
                     </div>
                   </div>
                   <ChevronDown className="h-4 w-4 text-white/80 hidden md:block" />
@@ -63,17 +83,17 @@ export function Header({ sidebarOpen, onToggleSidebar }: HeaderProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-2 py-2 border-b">
-                  <p className="font-medium">Jervey</p>
-                  <p className="text-xs text-muted-foreground">jervey.benitez@geco.asia</p>
+                  <p className="font-medium">{user.name}</p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
                 </div>
                 <DropdownMenuItem>
                   <Users className="mr-2 h-4 w-4" />
                   My Profile
                 </DropdownMenuItem>
-                {"Super Admin" === "Super Admin" && (
+                {user.role === "superadmin" && (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleUsersManagement}>
                       <Settings className="mr-2 h-4 w-4" />
                       User Management
                     </DropdownMenuItem>

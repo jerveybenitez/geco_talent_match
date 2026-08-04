@@ -6,10 +6,10 @@ import { LayoutDashboard, Users, FileText, TrendingUp } from "lucide-react";
 import { Button } from "./ui/button";
 
 const navigationItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/consultants", label: "Consultants", icon: Users },
-  { href: "/contracts", label: "Contracts", icon: FileText },
-  { href: "/performance", label: "Performance", icon: TrendingUp },
+  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/consultants", label: "Consultants", icon: Users },
+  { href: "/admin/contracts", label: "Contracts", icon: FileText },
+  { href: "/admin/performance", label: "Performance", icon: TrendingUp },
 ];
 
 interface SidebarProps {

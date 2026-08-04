@@ -4,20 +4,42 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Users, FileText, AlertCircle, ClipboardCheck, UserPlus, Upload, Calendar, LogOut, TrendingUp, Clock, MapPin } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { kpiData, engagementTrendData, contractExpiryData,mockContracts,mockPerformanceReviews,headcountByCountry,headcountByCountryDetailed } from "../data/mockData";
+import { engagementTrendData, mockPerformanceReviews } from "../data/mockData";
+
+interface DashboardCountry {
+  countryId: string;
+  country: string;
+  code: string;
+  consultants: unknown[];
+}
+
+interface DashboardOveralls {
+  activeContracts: number;
+  totalConsultants: number;
+  expiringContracts: number;
+}
+
+interface DashboardContractRenewal {
+  contractId: string;
+  consultantId: string;
+  consultantName: string;
+  endDate: string | Date;
+}
+
+interface DashboardContractExpiration {
+  month: string;
+  count: number;
+}
 
 interface DashboardProps {
   onNavigate?: (view: string, filter?: { type: string; value: string }) => void;
-  userRole?: string;
-  userCountry?: string;
-  userCountries?: string[];
+  countries: DashboardCountry[];
+  overalls: DashboardOveralls;
+  contractRenewals: DashboardContractRenewal[];
+  contractExpiration: DashboardContractExpiration[];
 }
 
-export function Dashboard({ onNavigate, userRole = "Super Admin", userCountry = "ALL", userCountries = [] }: DashboardProps) {
-  const upcomingRenewals = mockContracts
-    .filter(c => c.status === 'Pending Renewal')
-    .slice(0, 3);
-
+export function Dashboard({ onNavigate, countries, overalls, contractRenewals, contractExpiration }: DashboardProps) {
   const overdueReviews = mockPerformanceReviews
     .filter(r => r.status !== 'Completed' && new Date(r.dueDate) < new Date())
     .slice(0, 3);
@@ -27,14 +49,6 @@ export function Dashboard({ onNavigate, userRole = "Super Admin", userCountry = 
       onNavigate('consultants', { type: 'location', value: country });
     }
   };
-
-  // Filter countries based on user role
-  const visibleCountries = userRole === "Super Admin" || userCountries.includes("ALL")
-    ? headcountByCountryDetailed
-    : headcountByCountryDetailed.filter(item => userCountries.includes(item.code));
-
-  // Calculate total headcount for visible countries only
-  const totalHeadcount = visibleCountries.reduce((sum, country) => sum + country.total, 0);
 
   return (
     <div className="space-y-4">
@@ -50,14 +64,14 @@ export function Dashboard({ onNavigate, userRole = "Super Admin", userCountry = 
               Headcount by Country
             </CardTitle>
             <Badge variant="secondary" className="font-normal">
-              {totalHeadcount} Total
+              {overalls.totalConsultants} Total
             </Badge>
           </div>
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            {visibleCountries.map((item) => (
-              <div key={item.code} 
+            {countries.map((item) => (
+              <div key={item.countryId}
                    className="group relative overflow-hidden rounded-xl border bg-gradient-to-br 
                               from-white to-gray-50 p-4 hover:shadow-md transition-all duration-200 
                               hover:scale-[1.02]">
@@ -76,13 +90,13 @@ export function Dashboard({ onNavigate, userRole = "Super Admin", userCountry = 
                 {/* Total Count */}
                 <div className="mb-3">
                   <div className="text-2xl font-bold bg-gradient-to-br from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                    {item.total}
+                    {item.consultants.length}
                   </div>
-                  <div className="text-xs text-muted-foreground">consultants</div>
+                  <div className="text-xs text-muted-foreground">Consultants</div>
                 </div>
 
                 {/* Locals/Foreigners */}
-                <div className="space-y-1 mb-3">
+                {/* <div className="space-y-1 mb-3">
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-1.5">
                       <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
@@ -97,7 +111,7 @@ export function Dashboard({ onNavigate, userRole = "Super Admin", userCountry = 
                     </div>
                     <span className="font-medium">{item.foreigners}</span>
                   </div>
-                </div>
+                </div> */}
 
                 {/* View Button */}
                 <Button variant="ghost" size="sm" className="w-full h-8 text-xs group-hover:bg-blue-50 group-hover:text-blue-600"
@@ -117,7 +131,7 @@ export function Dashboard({ onNavigate, userRole = "Super Admin", userCountry = 
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Active Contracts</p>
-                <p className="text-2xl font-bold">{kpiData.activeContracts}</p>
+                <p className="text-2xl font-bold">{overalls.activeContracts}</p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
                 <FileText className="h-5 w-5 text-blue-600" />
@@ -130,8 +144,8 @@ export function Dashboard({ onNavigate, userRole = "Super Admin", userCountry = 
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Expiring This Month</p>
-                <p className="text-2xl font-bold text-orange-600">{kpiData.expiringThisMonth}</p>
+                <p className="text-xs text-muted-foreground mb-1">Expiring in 30 Days</p>
+                <p className="text-2xl font-bold text-orange-600">{overalls.expiringContracts}</p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
                 <AlertCircle className="h-5 w-5 text-orange-600" />
@@ -140,7 +154,7 @@ export function Dashboard({ onNavigate, userRole = "Super Admin", userCountry = 
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-sm bg-gradient-to-br from-purple-50 to-white">
+        {/* <Card className="border-none shadow-sm bg-gradient-to-br from-purple-50 to-white">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -152,14 +166,14 @@ export function Dashboard({ onNavigate, userRole = "Super Admin", userCountry = 
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         <Card className="border-none shadow-sm bg-gradient-to-br from-green-50 to-white">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Total Headcount</p>
-                <p className="text-2xl font-bold">{kpiData.totalHeadcount}</p>
+                <p className="text-2xl font-bold">{overalls.totalConsultants}</p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
                 <Users className="h-5 w-5 text-green-600" />
@@ -171,7 +185,7 @@ export function Dashboard({ onNavigate, userRole = "Super Admin", userCountry = 
 
       {/* Charts Row - Compact */}
       <div className="grid gap-3 md:grid-cols-2">
-        <Card className="border-none shadow-sm">
+        {/* <Card className="border-none shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-blue-500" />
@@ -196,7 +210,7 @@ export function Dashboard({ onNavigate, userRole = "Super Admin", userCountry = 
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
-        </Card>
+        </Card> */}
 
         <Card className="border-none shadow-sm">
           <CardHeader className="pb-3">
@@ -207,7 +221,7 @@ export function Dashboard({ onNavigate, userRole = "Super Admin", userCountry = 
           </CardHeader>
           <CardContent className="pt-0">
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={contractExpiryData}>
+              <BarChart data={contractExpiration}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
@@ -236,11 +250,14 @@ export function Dashboard({ onNavigate, userRole = "Super Admin", userCountry = 
             <div>
               <div className="text-xs font-medium text-muted-foreground mb-2">Contract Renewals</div>
               <div className="space-y-1.5">
-                {upcomingRenewals.map((contract) => (
-                  <div key={contract.id} className="flex items-center justify-between text-sm p-2 rounded-lg bg-orange-50 border border-orange-100">
+                {contractRenewals.length === 0 && (
+                  <p className="text-xs text-muted-foreground">No contracts renewing in the next 30 days.</p>
+                )}
+                {contractRenewals.map((contract) => (
+                  <div key={contract.contractId} className="flex items-center justify-between text-sm p-2 rounded-lg bg-orange-50 border border-orange-100">
                     <span className="font-medium text-gray-700 truncate">{contract.consultantName}</span>
                     <Badge variant="secondary" className="text-xs shrink-0 ml-2">
-                      {new Date(contract.nextActionDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      {new Date(contract.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </Badge>
                   </div>
                 ))}
@@ -248,7 +265,7 @@ export function Dashboard({ onNavigate, userRole = "Super Admin", userCountry = 
             </div>
 
             {/* Performance Reviews */}
-            <div>
+            {/* <div>
               <div className="text-xs font-medium text-muted-foreground mb-2">Pending Reviews</div>
               <div className="space-y-1.5">
                 {overdueReviews.map((review) => (
@@ -260,7 +277,7 @@ export function Dashboard({ onNavigate, userRole = "Super Admin", userCountry = 
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
 

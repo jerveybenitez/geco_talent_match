@@ -15,7 +15,7 @@ export default function Home() {
 
     if (!res.ok) return false;
 
-    router.push("/dashboard");
+    router.push("/admin/dashboard");
     return true;
   };
 
