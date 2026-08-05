@@ -15,7 +15,16 @@ export interface ConsultantListItem {
   contractExpiry: string;
 }
 
-export async function getConsultantsData(userId: string) {
+export interface ConsultantProfileData extends ConsultantListItem {
+  countryId: string;
+  bio: string | null;
+  linkedin: string | null;
+  yearsOfExperience: number | null;
+  availableFrom: string;
+  availableTo: string;
+}
+
+async function getAdminCountries(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: { countriesHandled: true },
@@ -25,12 +34,26 @@ export async function getConsultantsData(userId: string) {
     return null;
   }
 
-  const countryIds = user.countriesHandled.map((country) => country.id);
+  return {
+    countryIds: user.countriesHandled.map((country) => country.id),
+    countries: user.countriesHandled.map((country) => ({
+      id: country.id,
+      name: country.name,
+      code: country.countryCode,
+    })),
+  };
+}
+
+export async function getConsultantsData(userId: string) {
+  const admin = await getAdminCountries(userId);
+  if (!admin) {
+    return null;
+  }
 
   const consultants = await prisma.consultant.findMany({
     where: {
       active: true,
-      countryId: { in: countryIds },
+      countryId: { in: admin.countryIds },
     },
     orderBy: { dateCreate: "desc" },
     include: {
@@ -63,39 +86,20 @@ export async function getConsultantsData(userId: string) {
     contractExpiry: (consultant.contracts[0]?.endDate ?? consultant.availableTo).toISOString(),
   }));
 
-  const countries = user.countriesHandled.map((country) => ({
-    id: country.id,
-    name: country.name,
-    code: country.countryCode,
-  }));
-
-  return { consultants: consultantList, countries };
+  return { consultants: consultantList, countries: admin.countries };
 }
 
-export interface ConsultantProfileData extends ConsultantListItem {
-  bio: string | null;
-  linkedin: string | null;
-  yearsOfExperience: number | null;
-  availableFrom: string;
-}
-
-export async function getConsultantById(id: string, adminUserId: string): Promise<ConsultantProfileData | null> {
-  const admin = await prisma.user.findUnique({
-    where: { id: adminUserId },
-    include: { countriesHandled: true },
-  });
-
+export async function getConsultantById(id: string, adminUserId: string) {
+  const admin = await getAdminCountries(adminUserId);
   if (!admin) {
     return null;
   }
-
-  const countryIds = admin.countriesHandled.map((country) => country.id);
 
   const consultant = await prisma.consultant.findFirst({
     where: {
       id,
       active: true,
-      countryId: { in: countryIds },
+      countryId: { in: admin.countryIds },
     },
     include: {
       user: { select: { name: true, email: true, phone: true, image: true } },
@@ -116,7 +120,7 @@ export async function getConsultantById(id: string, adminUserId: string): Promis
     return null;
   }
 
-  return {
+  const consultantData: ConsultantProfileData = {
     id: consultant.id,
     name: consultant.user.name,
     email: consultant.user.email,
@@ -125,6 +129,7 @@ export async function getConsultantById(id: string, adminUserId: string): Promis
     role: consultant.job.name,
     city: consultant.city,
     country: consultant.country.name,
+    countryId: consultant.countryId,
     status: consultant.status,
     skills: consultant.skills.map((skill) => skill.name),
     industries: consultant.industries.map((industry) => industry.name),
@@ -133,5 +138,8 @@ export async function getConsultantById(id: string, adminUserId: string): Promis
     linkedin: consultant.linkedin,
     yearsOfExperience: consultant.yearsOfExperience,
     availableFrom: consultant.availableFrom.toISOString(),
+    availableTo: consultant.availableTo.toISOString(),
   };
+
+  return { consultant: consultantData, countries: admin.countries };
 }

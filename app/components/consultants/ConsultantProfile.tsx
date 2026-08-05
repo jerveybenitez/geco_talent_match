@@ -15,12 +15,14 @@ import {
 } from "lucide-react";
 import type { ConsultantProfileData } from "@/lib/consultantsData";
 import { ImageWithFallback } from "../ui/ImageWithFallback";
+import { ConsultantFormModal } from "./ConsultantFormModal";
 
 interface ConsultantProfileProps {
   consultant: ConsultantProfileData;
+  countries: { id: string; name: string; code: string }[];
 }
 
-export function ConsultantProfile({ consultant }: ConsultantProfileProps) {
+export function ConsultantProfile({ consultant, countries }: ConsultantProfileProps) {
   const linkedinHref = consultant.linkedin
     ? consultant.linkedin.startsWith("http")
       ? consultant.linkedin
@@ -34,7 +36,7 @@ export function ConsultantProfile({ consultant }: ConsultantProfileProps) {
           <Link href="/admin/consultants">← Back to List</Link>
         </Button>
         <div className="flex gap-2">
-          <Button variant="outline">Edit Profile</Button>
+          <ConsultantFormModal countries={countries} consultant={consultant} />
         </div>
       </div>
 

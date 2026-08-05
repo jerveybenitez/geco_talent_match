@@ -15,11 +15,11 @@ export default async function ConsultantDetailPage({
   }
 
   const { id } = await params;
-  const consultant = await getConsultantById(id, user.id);
+  const result = await getConsultantById(id, user.id);
 
-  if (!consultant) {
+  if (!result) {
     notFound();
   }
 
-  return <ConsultantProfile consultant={consultant} />;
+  return <ConsultantProfile consultant={result.consultant} countries={result.countries} />;
 }

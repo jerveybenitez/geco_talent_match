@@ -10,7 +10,7 @@ import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Search, MapPin } from "lucide-react";
 import { ImageWithFallback } from "../ui/ImageWithFallback";
-import { AddConsultantModal } from "./AddConsultantModal";
+import { ConsultantFormModal } from "./ConsultantFormModal";
 import type { ConsultantListItem } from "@/lib/consultantsData";
 
 interface ConsultantListProps {
@@ -40,7 +40,7 @@ export function ConsultantList({ initialLocationFilter = "all", consultants, cou
       {/* Header with Add Button */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Consultant Database</h2>
-        <AddConsultantModal countries={countries} />
+        <ConsultantFormModal countries={countries} />
       </div>
 
       {/* Filters */}
