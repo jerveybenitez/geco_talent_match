@@ -12,17 +12,21 @@ import {
   Star,
   FileText,
   Award,
-  CheckCircle,
-  Shield
 } from "lucide-react";
-import { Consultant } from "../../data/mockData";
+import type { ConsultantProfileData } from "@/lib/consultantsData";
 import { ImageWithFallback } from "../ui/ImageWithFallback";
 
 interface ConsultantProfileProps {
-  consultant: Consultant;
+  consultant: ConsultantProfileData;
 }
 
 export function ConsultantProfile({ consultant }: ConsultantProfileProps) {
+  const linkedinHref = consultant.linkedin
+    ? consultant.linkedin.startsWith("http")
+      ? consultant.linkedin
+      : `https://${consultant.linkedin}`
+    : null;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -38,63 +42,59 @@ export function ConsultantProfile({ consultant }: ConsultantProfileProps) {
       <Card>
         <CardContent className="pt-6">
           <div className="flex gap-6">
-            <ImageWithFallback
-              src={consultant.photo}
-              alt={consultant.name}
-              className="w-32 h-32 rounded-lg object-cover"
-            />
+            {consultant.photo ? (
+              <ImageWithFallback
+                src={consultant.photo}
+                alt={consultant.name}
+                className="w-32 h-32 rounded-lg object-cover"
+              />
+            ) : (
+              <div className="w-32 h-32 rounded-lg bg-gray-200 flex items-center justify-center text-4xl font-medium text-gray-500">
+                {consultant.name.charAt(0).toUpperCase()}
+              </div>
+            )}
             <div className="flex-1">
               <div className="flex items-start justify-between">
                 <div>
                   <h1 className="text-3xl font-bold">{consultant.name}</h1>
                   <p className="text-xl text-muted-foreground mt-1">{consultant.role}</p>
                 </div>
-                <div className="flex flex-col gap-2 items-end">
-                  <Badge
-                    variant={
-                      consultant.status === 'Available' ? 'default' :
-                      consultant.status === 'Committed' ? 'secondary' :
-                      'outline'
-                    }
-                  >
-                    {consultant.status}
-                  </Badge>
-                  <div className="flex flex-wrap gap-2 justify-end">
-                    {consultant.profileCompleted && (
-                      <Badge variant="outline" className="text-xs border-green-500 text-green-700 bg-green-50">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Profile Completed
-                      </Badge>
-                    )}
-                    {consultant.orientationCompleted && (
-                      <Badge variant="outline" className="text-xs border-blue-500 text-blue-700 bg-blue-50">
-                        <Shield className="h-3 w-3 mr-1" />
-                        Orientation Completed
-                      </Badge>
-                    )}
-                  </div>
-                </div>
+                <Badge
+                  variant={
+                    consultant.status === 'Available' ? 'default' :
+                    consultant.status === 'Committed' ? 'secondary' :
+                    'outline'
+                  }
+                >
+                  {consultant.status}
+                </Badge>
               </div>
-              <p className="mt-4 text-muted-foreground">{consultant.bio}</p>
-              <div className="flex gap-6 mt-4 text-sm">
+              {consultant.bio && (
+                <p className="mt-4 text-muted-foreground">{consultant.bio}</p>
+              )}
+              <div className="flex flex-wrap gap-6 mt-4 text-sm">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  {consultant.location}
+                  {consultant.city}, {consultant.country}
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
                   {consultant.email}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  {consultant.phone}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Linkedin className="h-4 w-4 text-muted-foreground" />
-                  <a href={`https://${consultant.linkedIn}`} className="text-blue-500 hover:underline">
-                    LinkedIn
-                  </a>
-                </div>
+                {consultant.phone && (
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    {consultant.phone}
+                  </div>
+                )}
+                {linkedinHref && (
+                  <div className="flex items-center gap-2">
+                    <Linkedin className="h-4 w-4 text-muted-foreground" />
+                    <a href={linkedinHref} className="text-blue-500 hover:underline">
+                      LinkedIn
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -120,8 +120,8 @@ export function ConsultantProfile({ consultant }: ConsultantProfileProps) {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {consultant.skills.map((skill, idx) => (
-                    <Badge key={idx} variant="secondary">{skill}</Badge>
+                  {consultant.skills.map((skill) => (
+                    <Badge key={skill} variant="secondary">{skill}</Badge>
                   ))}
                 </div>
               </CardContent>
@@ -133,41 +133,47 @@ export function ConsultantProfile({ consultant }: ConsultantProfileProps) {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {consultant.industry.map((ind, idx) => (
-                    <Badge key={idx} variant="outline">{ind}</Badge>
+                  {consultant.industries.map((industry) => (
+                    <Badge key={industry} variant="outline">{industry}</Badge>
                   ))}
                 </div>
               </CardContent>
             </Card>
 
+            {/* Sample data - languages aren't collected on the consultant form yet */}
             <Card>
               <CardHeader>
                 <CardTitle>Languages</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {consultant.languages.map((lang, idx) => (
-                    <div key={idx} className="flex justify-between">
-                      <span>{lang.language}</span>
-                      <Badge variant="secondary">{lang.proficiency}</Badge>
-                    </div>
-                  ))}
+                  <div className="flex justify-between">
+                    <span>English</span>
+                    <Badge variant="secondary">Native</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Mandarin</span>
+                    <Badge variant="secondary">Fluent</Badge>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Sample data - certifications aren't tracked in the schema yet */}
             <Card>
               <CardHeader>
                 <CardTitle>Certifications</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {consultant.certifications.map((cert, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <Award className="h-4 w-4 text-yellow-500" />
-                      <span className="text-sm">{cert}</span>
-                    </div>
-                  ))}
+                  <div className="flex items-center gap-2">
+                    <Award className="h-4 w-4 text-yellow-500" />
+                    <span className="text-sm">PMP</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Award className="h-4 w-4 text-yellow-500" />
+                    <span className="text-sm">CSM</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -178,12 +184,15 @@ export function ConsultantProfile({ consultant }: ConsultantProfileProps) {
               <CardTitle>Experience</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{consultant.yearsOfExperience} years</div>
+              <div className="text-2xl font-bold">
+                {consultant.yearsOfExperience != null ? `${consultant.yearsOfExperience} years` : "Not specified"}
+              </div>
               <p className="text-sm text-muted-foreground mt-1">Total professional experience</p>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Sample data - work history entries aren't collected yet */}
         <TabsContent value="history">
           <Card>
             <CardHeader>
@@ -208,6 +217,7 @@ export function ConsultantProfile({ consultant }: ConsultantProfileProps) {
           </Card>
         </TabsContent>
 
+        {/* Sample data - no performance review model exists yet */}
         <TabsContent value="performance">
           <Card>
             <CardHeader>
@@ -240,6 +250,7 @@ export function ConsultantProfile({ consultant }: ConsultantProfileProps) {
           </Card>
         </TabsContent>
 
+        {/* Sample data - contract salary/renewal details aren't tracked yet */}
         <TabsContent value="contracts">
           <Card>
             <CardHeader>
@@ -293,15 +304,18 @@ export function ConsultantProfile({ consultant }: ConsultantProfileProps) {
               <div className="p-8 border rounded-lg text-center">
                 <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <div className="font-medium">Next Available</div>
-                <div className="text-2xl font-bold mt-2">{consultant.availability}</div>
+                <div className="text-2xl font-bold mt-2">
+                  {new Date(consultant.availableFrom).toLocaleDateString()}
+                </div>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Current contract expires on {consultant.contractExpiry}
+                  Current contract expires on {new Date(consultant.contractExpiry).toLocaleDateString()}
                 </p>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Sample data - document uploads aren't wired up yet */}
         <TabsContent value="documents">
           <Card>
             <CardHeader>

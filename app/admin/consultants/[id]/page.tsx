@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { ConsultantProfile } from "@/app/components/consultants/ConsultantProfile";
-import { mockConsultants } from "@/app/data/mockData";
+import { getConsultantById } from "@/lib/consultantsData";
 
 export default async function ConsultantDetailPage({
   params,
@@ -15,7 +15,7 @@ export default async function ConsultantDetailPage({
   }
 
   const { id } = await params;
-  const consultant = mockConsultants.find((c) => c.id === id);
+  const consultant = await getConsultantById(id, user.id);
 
   if (!consultant) {
     notFound();
