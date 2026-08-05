@@ -4,6 +4,12 @@ enum Role {
     user
 }
 
+enum ConsultantStatus {
+    Available
+    Committed
+    Former
+}
+
 model User {
   id String @id @default(cuid())
   email String @unique
@@ -20,9 +26,9 @@ model User {
 }
 
 model Session {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
   expiresAt DateTime
   createdAt DateTime @default(now())
 }
@@ -31,6 +37,21 @@ model Consultant {
   id String @id @default(cuid())
   userId String @unique
   user User @relation(fields: [userId], references: [id])
+  status ConsultantStatus @default(Available)
+  phone String
+  skills Skills[]
+  languages Languages[]
+  industries Industries[]
+  linkedin String?
+  professionalBio String?
+  yearsOfExperience Float?
+  city String
+  country Country @relation(fields: [countryId], references: [id])
+  countryId String
+  job Jobs @relation(fields: [jobId], references: [id])
+  jobId String
+  availableFrom DateTime
+  availableTo DateTime
   active Boolean @default(true)
   dateCreate DateTime @default(now())
   contracts Contracts[]

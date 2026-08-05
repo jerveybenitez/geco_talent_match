@@ -4,27 +4,35 @@ model Country{
     name String
     countryCode String @unique //Put ISO 3166-1 alpha-2 code of the country
     phone String
-    cities City[]
     active Boolean @default(true)
+    consultants Consultant[]
     users User[] @relation("UserCountriesHandled")
-}
-
-model City{
-    id String @id @default(cuid())
-    name String
-    countryId String
-    country Country @relation(fields: [countryId], references: [id])
-    active Boolean @default(true)
 }
 
 model Languages{
     id String @id @default(cuid())
     name String
+    consultants Consultant[]
+    active Boolean @default(true)
+}
+
+model Industries{
+    id String @id @default(cuid())
+    name String
+    consultants Consultant[]
     active Boolean @default(true)
 }
 
 model Skills{
     id String @id @default(cuid())
     name String
+    consultants Consultant[]
+    active Boolean @default(true)
+}
+
+model Jobs{
+    id String @id @default(cuid())
+    name String
+    consultants Consultant[]
     active Boolean @default(true)
 }

@@ -21,7 +21,6 @@ export default async function ConsultantsPage() {
       countries={data.countries}
       overalls={data.overalls}
       contractRenewals={data.contractRenewals}
-      contractExpiration={data.contractExpiration}
-    />
+      contractExpiration={data.contractExpiration} />
   );
 }

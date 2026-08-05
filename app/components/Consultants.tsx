@@ -18,6 +18,7 @@ import {
   Linkedin,
   Star,
   TrendingUp,
+  Upload,
   FileText,
   Award,
   Plus,
@@ -410,6 +411,28 @@ export function ConsultantDatabase({ initialLocationFilter = 'all' }: Consultant
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="grid gap-4 md:grid-cols-2">
+
+                <div>
+                  <Label>Profile Photo</Label>
+                  <div className="mt-2 flex items-center gap-4">
+                    { false ? (
+                      <img
+                        src={""}
+                        alt="Profile"
+                        className="w-20 h-20 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center">
+                        <Upload className="h-8 w-8 text-gray-400" />
+                      </div>
+                    )}
+                    <Button variant="outline" size="sm">
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Photo
+                    </Button>
+                  </div>
+                </div>
+
                 <div className="md:col-span-2">
                   <Label htmlFor="name">Full Name *</Label>
                   <Input id="name" placeholder="Enter full name" />
@@ -431,22 +454,26 @@ export function ConsultantDatabase({ initialLocationFilter = 'all' }: Consultant
                   <Input id="years-exp" type="number" placeholder="5" />
                 </div>
                 <div>
-                  <Label htmlFor="location">Location *</Label>
+                  <Label htmlFor="city">City</Label>
+                  <Input id="city" placeholder="e.g., Bangkok" />
+                </div>
+                <div>
+                  <Label htmlFor="country">Country *</Label>
                   <Select>
-                    <SelectTrigger id="location">
-                      <SelectValue placeholder="Select location" />
+                    <SelectTrigger id="country">
+                      <SelectValue placeholder="Select Country" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Manila, Philippines">Manila, Philippines</SelectItem>
+                      <SelectItem value="Philippines">Philippines</SelectItem>
                       <SelectItem value="Singapore">Singapore</SelectItem>
-                      <SelectItem value="Bangkok, Thailand">Bangkok, Thailand</SelectItem>
-                      <SelectItem value="Kuala Lumpur, Malaysia">Kuala Lumpur, Malaysia</SelectItem>
-                      <SelectItem value="Jakarta, Indonesia">Jakarta, Indonesia</SelectItem>
-                      <SelectItem value="Ho Chi Minh, Vietnam">Ho Chi Minh, Vietnam</SelectItem>
+                      <SelectItem value="Thailand">Thailand</SelectItem>
+                      <SelectItem value="Malaysia">Malaysia</SelectItem>
+                      <SelectItem value="Indonesia">Indonesia</SelectItem>
+                      <SelectItem value="Vietnam">Vietnam</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
+                <div className="md:col-span-2">
                   <Label htmlFor="status">Status *</Label>
                   <Select>
                     <SelectTrigger id="status">
