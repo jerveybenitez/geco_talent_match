@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -9,11 +10,132 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Upload, UserPlus } from "lucide-react";
 
-export function AddConsultantModal() {
+type ConsultantStatus = "Available" | "Committed" | "Former";
+
+interface AddConsultantModalProps {
+  countries: { id: string; name: string; code: string }[];
+}
+
+const emptyFormData = {
+  name: "",
+  email: "",
+  phone: "",
+  jobTitle: "",
+  yearsOfExperience: "",
+  city: "",
+  countryId: "",
+  status: "Available" as ConsultantStatus,
+  bio: "",
+  skills: "",
+  industries: "",
+  availableFrom: "",
+  availableTo: "",
+  linkedin: "",
+  image: null as string | null,
+};
+
+export function AddConsultantModal({ countries }: AddConsultantModalProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [formData, setFormData] = useState(emptyFormData);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  const resetAndClose = () => {
+    setFormData(emptyFormData);
+    setFormError(null);
+    setOpen(false);
+  };
+
+  const handlePhotoSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setFormError(null);
+    setIsUploadingPhoto(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+
+      const res = await fetch("/api/uploads", { method: "POST", body });
+      const data = await res.json();
+      if (!res.ok) {
+        setFormError(data.error ?? "Failed to upload photo");
+        return;
+      }
+
+      setFormData((prev) => ({ ...prev, image: data.url }));
+    } catch {
+      setFormError("Failed to upload photo");
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setFormError(null);
+
+    if (!formData.name || !formData.email) {
+      setFormError("Name and email are required");
+      return;
+    }
+    if (!formData.jobTitle) {
+      setFormError("Role/Position is required");
+      return;
+    }
+    if (!formData.city || !formData.countryId) {
+      setFormError("City and country are required");
+      return;
+    }
+    if (!formData.availableFrom || !formData.availableTo) {
+      setFormError("Available From and Contract Expiry dates are required");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/consultants", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone || null,
+          image: formData.image,
+          status: formData.status,
+          jobTitle: formData.jobTitle,
+          yearsOfExperience: formData.yearsOfExperience || null,
+          city: formData.city,
+          countryId: formData.countryId,
+          bio: formData.bio || null,
+          skills: formData.skills,
+          industries: formData.industries,
+          availableFrom: formData.availableFrom,
+          availableTo: formData.availableTo,
+          linkedin: formData.linkedin || null,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setFormError(data.error ?? "Failed to create consultant");
+        return;
+      }
+
+      resetAndClose();
+      router.refresh();
+    } catch {
+      setFormError("Failed to create consultant");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : resetAndClose())}>
       <DialogTrigger asChild>
         <Button>
           <UserPlus className="mr-2 h-4 w-4" />
@@ -30,9 +152,9 @@ export function AddConsultantModal() {
             <div>
               <Label>Profile Photo</Label>
               <div className="mt-2 flex items-center gap-4">
-                { false ? (
+                {formData.image ? (
                   <img
-                    src={""}
+                    src={formData.image}
                     alt="Profile"
                     className="w-20 h-20 rounded-full object-cover"
                   />
@@ -41,58 +163,108 @@ export function AddConsultantModal() {
                     <Upload className="h-8 w-8 text-gray-400" />
                   </div>
                 )}
-                <Button variant="outline" size="sm">
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className="hidden"
+                  onChange={handlePhotoSelected}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isUploadingPhoto}
+                  onClick={() => photoInputRef.current?.click()}
+                >
                   <Upload className="mr-2 h-4 w-4" />
-                  Upload Photo
+                  {isUploadingPhoto ? "Uploading..." : "Upload Photo"}
                 </Button>
               </div>
             </div>
 
             <div className="md:col-span-2">
               <Label htmlFor="name">Full Name *</Label>
-              <Input id="name" placeholder="Enter full name" />
+              <Input
+                id="name"
+                placeholder="Enter full name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
             </div>
             <div>
               <Label htmlFor="email">Email *</Label>
-              <Input id="email" type="email" placeholder="email@example.com" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="email@example.com"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
             </div>
             <div>
-              <Label htmlFor="phone">Phone *</Label>
-              <Input id="phone" placeholder="+XX XXX XXX XXXX" />
+              <Label htmlFor="phone">Phone</Label>
+              <Input
+                id="phone"
+                placeholder="+XX XXX XXX XXXX"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              />
             </div>
             <div>
               <Label htmlFor="role">Role/Position *</Label>
-              <Input id="role" placeholder="e.g., Senior Business Analyst" />
+              <Input
+                id="role"
+                placeholder="e.g., Senior Business Analyst"
+                value={formData.jobTitle}
+                onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
+              />
             </div>
             <div>
-              <Label htmlFor="years-exp">Years of Experience *</Label>
-              <Input id="years-exp" type="number" placeholder="5" />
+              <Label htmlFor="years-exp">Years of Experience</Label>
+              <Input
+                id="years-exp"
+                type="number"
+                placeholder="5"
+                value={formData.yearsOfExperience}
+                onChange={(e) => setFormData({ ...formData, yearsOfExperience: e.target.value })}
+              />
             </div>
             <div>
-              <Label htmlFor="city">City</Label>
-              <Input id="city" placeholder="e.g., Bangkok" />
+              <Label htmlFor="city">City *</Label>
+              <Input
+                id="city"
+                placeholder="e.g., Bangkok"
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+              />
             </div>
             <div>
               <Label htmlFor="country">Country *</Label>
-              <Select>
+              <Select
+                value={formData.countryId}
+                onValueChange={(value) => setFormData({ ...formData, countryId: value })}
+              >
                 <SelectTrigger id="country">
                   <SelectValue placeholder="Select Country" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Philippines">Philippines</SelectItem>
-                  <SelectItem value="Singapore">Singapore</SelectItem>
-                  <SelectItem value="Thailand">Thailand</SelectItem>
-                  <SelectItem value="Malaysia">Malaysia</SelectItem>
-                  <SelectItem value="Indonesia">Indonesia</SelectItem>
-                  <SelectItem value="Vietnam">Vietnam</SelectItem>
+                  {countries.map((country) => (
+                    <SelectItem key={country.id} value={country.id}>
+                      {country.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="md:col-span-2">
               <Label htmlFor="status">Status *</Label>
-              <Select>
+              <Select
+                value={formData.status}
+                onValueChange={(value) => setFormData({ ...formData, status: value as ConsultantStatus })}
+              >
                 <SelectTrigger id="status">
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Available">Available</SelectItem>
@@ -103,35 +275,71 @@ export function AddConsultantModal() {
             </div>
             <div className="md:col-span-2">
               <Label htmlFor="bio">Professional Bio</Label>
-              <Textarea id="bio" placeholder="Brief professional summary..." rows={3} />
+              <Textarea
+                id="bio"
+                placeholder="Brief professional summary..."
+                rows={3}
+                value={formData.bio}
+                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+              />
             </div>
             <div className="md:col-span-2">
               <Label htmlFor="skills">Skills (comma-separated)</Label>
-              <Input id="skills" placeholder="e.g., Python, SQL, Data Analysis, Tableau" />
+              <Input
+                id="skills"
+                placeholder="e.g., Python, SQL, Data Analysis, Tableau"
+                value={formData.skills}
+                onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
+              />
             </div>
             <div className="md:col-span-2">
               <Label htmlFor="industry">Industries (comma-separated)</Label>
-              <Input id="industry" placeholder="e.g., Finance, Healthcare, Technology" />
+              <Input
+                id="industry"
+                placeholder="e.g., Finance, Healthcare, Technology"
+                value={formData.industries}
+                onChange={(e) => setFormData({ ...formData, industries: e.target.value })}
+              />
             </div>
             <div>
-              <Label htmlFor="availability">Available From</Label>
-              <Input id="availability" type="date" />
+              <Label htmlFor="availability">Available From *</Label>
+              <Input
+                id="availability"
+                type="date"
+                value={formData.availableFrom}
+                onChange={(e) => setFormData({ ...formData, availableFrom: e.target.value })}
+              />
             </div>
             <div>
-              <Label htmlFor="contract-expiry">Contract Expiry (if applicable)</Label>
-              <Input id="contract-expiry" type="date" />
+              <Label htmlFor="contract-expiry">Contract Expiry *</Label>
+              <Input
+                id="contract-expiry"
+                type="date"
+                value={formData.availableTo}
+                onChange={(e) => setFormData({ ...formData, availableTo: e.target.value })}
+              />
             </div>
             <div className="md:col-span-2">
               <Label htmlFor="linkedin">LinkedIn Profile</Label>
-              <Input id="linkedin" placeholder="linkedin.com/in/..." />
+              <Input
+                id="linkedin"
+                placeholder="linkedin.com/in/..."
+                value={formData.linkedin}
+                onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
+              />
             </div>
           </div>
+
+          {formError && (
+            <p className="text-sm text-red-600">{formError}</p>
+          )}
+
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={() => setOpen(false)}>
+            <Button variant="outline" onClick={resetAndClose}>
               Cancel
             </Button>
-            <Button onClick={() => setOpen(false)}>
-              Add Consultant
+            <Button onClick={handleSubmit} disabled={isSaving || isUploadingPhoto}>
+              {isSaving ? "Creating..." : "Add Consultant"}
             </Button>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { getDashboardData } from "@/lib/dashboardData";
+import { getConsultantsData } from "@/lib/consultantsData";
 import { Consultants } from "@/app/components/Consultants";
 
 export default async function ConsultantsPage() {
@@ -10,17 +10,11 @@ export default async function ConsultantsPage() {
     redirect("/");
   }
 
-  const data = await getDashboardData(user.id);
+  const data = await getConsultantsData(user.id);
 
   if (!data) {
     redirect("/");
   }
 
-  return (
-    <Consultants
-      countries={data.countries}
-      overalls={data.overalls}
-      contractRenewals={data.contractRenewals}
-      contractExpiration={data.contractExpiration} />
-  );
+  return <Consultants consultants={data.consultants} countries={data.countries} />;
 }
