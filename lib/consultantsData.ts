@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getContractsForConsultant, type ContractListItem } from "@/lib/contractsData";
 
 export interface ConsultantListItem {
   id: string;
@@ -22,6 +23,7 @@ export interface ConsultantProfileData extends ConsultantListItem {
   yearsOfExperience: number | null;
   availableFrom: string;
   availableTo: string;
+  contracts: ContractListItem[];
 }
 
 async function getAdminCountries(userId: string) {
@@ -122,6 +124,8 @@ export async function getConsultantById(id: string, adminUserId: string) {
     return null;
   }
 
+  const contracts = await getContractsForConsultant(consultant.id);
+
   const consultantData: ConsultantProfileData = {
     id: consultant.id,
     name: consultant.user.name,
@@ -141,6 +145,7 @@ export async function getConsultantById(id: string, adminUserId: string) {
     yearsOfExperience: consultant.yearsOfExperience,
     availableFrom: consultant.availableFrom.toISOString(),
     availableTo: consultant.availableTo.toISOString(),
+    contracts,
   };
 
   return { consultant: consultantData, countries: admin.countries };

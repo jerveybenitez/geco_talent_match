@@ -222,3 +222,12 @@
     }
   }
 }
+
+/* Unlayered on purpose: Tailwind's utilities layer (e.g. the Dialog component's
+   hardcoded sm:max-w-lg) always wins over anything in @layer base, regardless of
+   source order, so overrides like this have to sit outside any @layer block. */
+@media (min-width: 640px) {
+  .contract-form-dialog {
+    max-width: 45rem;
+  }
+}

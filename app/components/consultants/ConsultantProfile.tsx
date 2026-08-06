@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import {
   MapPin,
   Calendar,
@@ -13,9 +14,17 @@ import {
   FileText,
   Award,
 } from "lucide-react";
+import type { ContractStatus } from "@/lib/contractsData";
 import type { ConsultantProfileData } from "@/lib/consultantsData";
 import { ImageWithFallback } from "../ui/ImageWithFallback";
 import { ConsultantFormModal } from "./ConsultantFormModal";
+
+const contractStatusVariant: Record<ContractStatus, "default" | "secondary" | "destructive" | "outline"> = {
+  Active: "default",
+  "Pending Renewal": "secondary",
+  Expired: "destructive",
+  Inactive: "outline",
+};
 
 interface ConsultantProfileProps {
   consultant: ConsultantProfileData;
@@ -252,47 +261,48 @@ export function ConsultantProfile({ consultant, countries }: ConsultantProfilePr
           </Card>
         </TabsContent>
 
-        {/* Sample data - contract salary/renewal details aren't tracked yet */}
         <TabsContent value="contracts">
           <Card>
             <CardHeader>
               <CardTitle>Contract History</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="font-medium">ABC Bank</div>
-                    <Badge>Active</Badge>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Duration:</span>
-                      <span className="ml-2 font-medium">24 months</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Renewal:</span>
-                      <span className="ml-2 font-medium">2nd renewal</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Start:</span>
-                      <span className="ml-2 font-medium">Aug 15, 2024</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">End:</span>
-                      <span className="ml-2 font-medium">Aug 15, 2026</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Current Salary:</span>
-                      <span className="ml-2 font-medium">$95,000</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Last Increase:</span>
-                      <span className="ml-2 font-medium text-green-600">+9.2%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {consultant.contracts.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No contracts on record for this consultant.</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Contract Type</TableHead>
+                      <TableHead>Start Date</TableHead>
+                      <TableHead>End Date</TableHead>
+                      <TableHead>Monthly Salary</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {consultant.contracts.map((contract) => (
+                      <TableRow key={contract.id} className="hover:bg-gray-50">
+                        <TableCell className="font-medium">
+                          <Link href={`/admin/contracts/${contract.id}`} className="hover:underline">
+                            {contract.client}
+                          </Link>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{contract.contractType}</Badge>
+                        </TableCell>
+                        <TableCell>{new Date(contract.contractstartDate).toLocaleDateString()}</TableCell>
+                        <TableCell>{new Date(contract.contractendDate).toLocaleDateString()}</TableCell>
+                        <TableCell>${contract.monthlySalary.toLocaleString()}</TableCell>
+                        <TableCell>
+                          <Badge variant={contractStatusVariant[contract.status]}>{contract.status}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
