@@ -42,19 +42,19 @@ export async function getDashboardData(userid: string) {
         activeContracts: allActiveContracts.length,
         totalConsultants: consultants.length,
         expiringContracts: allActiveContracts.filter(
-            (contract) => contract.endDate >= now && contract.endDate <= in30Days
+            (contract) => contract.contractendDate >= now && contract.contractendDate <= in30Days
         ).length
     };
 
     const contractRenewals = consultants
         .flatMap((consultant) =>
             consultant.contracts
-                .filter((contract) => contract.endDate >= now && contract.endDate <= in30Days)
+                .filter((contract) => contract.contractendDate >= now && contract.contractendDate <= in30Days)
                 .map((contract) => ({
                     contractId: contract.id,
                     consultantId: consultant.id,
                     consultantName: consultant.user.name,
-                    endDate: contract.endDate
+                    endDate: contract.contractendDate
                 }))
         )
         .sort((a, b) => a.endDate.getTime() - b.endDate.getTime());
@@ -67,7 +67,7 @@ export async function getDashboardData(userid: string) {
     const contractExpiration = upcomingMonths.map(({ year, month, label }) => ({
         month: label,
         count: allActiveContracts.filter(
-            (contract) => contract.endDate.getFullYear() === year && contract.endDate.getMonth() === month
+            (contract) => contract.contractendDate.getFullYear() === year && contract.contractendDate.getMonth() === month
         ).length
     }));
 

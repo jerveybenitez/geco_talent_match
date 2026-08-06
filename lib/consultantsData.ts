@@ -64,9 +64,9 @@ export async function getConsultantsData(userId: string) {
       industries: { select: { name: true } },
       contracts: {
         where: { active: true },
-        orderBy: { endDate: "asc" },
+        orderBy: { contractendDate: "asc" },
         take: 1,
-        select: { endDate: true },
+        select: { contractendDate: true },
       },
     },
   });
@@ -83,7 +83,7 @@ export async function getConsultantsData(userId: string) {
     status: consultant.status,
     skills: consultant.skills.map((skill) => skill.name),
     industries: consultant.industries.map((industry) => industry.name),
-    contractExpiry: (consultant.contracts[0]?.endDate ?? consultant.availableTo).toISOString(),
+    contractExpiry: (consultant.contracts[0]?.contractendDate ?? consultant.availableTo).toISOString(),
   }));
 
   return { consultants: consultantList, countries: admin.countries };
@@ -109,9 +109,9 @@ export async function getConsultantById(id: string, adminUserId: string) {
       industries: { select: { name: true } },
       contracts: {
         where: { active: true },
-        orderBy: { endDate: "asc" },
+        orderBy: { contractendDate: "asc" },
         take: 1,
-        select: { endDate: true },
+        select: { contractendDate: true },
       },
     },
   });
@@ -133,7 +133,7 @@ export async function getConsultantById(id: string, adminUserId: string) {
     status: consultant.status,
     skills: consultant.skills.map((skill) => skill.name),
     industries: consultant.industries.map((industry) => industry.name),
-    contractExpiry: (consultant.contracts[0]?.endDate ?? consultant.availableTo).toISOString(),
+    contractExpiry: (consultant.contracts[0]?.contractendDate ?? consultant.availableTo).toISOString(),
     bio: consultant.professionalBio,
     linkedin: consultant.linkedin,
     yearsOfExperience: consultant.yearsOfExperience,
