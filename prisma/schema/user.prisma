@@ -55,6 +55,7 @@ model Consultant {
   dateCreate DateTime @default(now())
   contracts Contract[]
   workHistory WorkHistory[]
+  performanceReviews PerformanceReview[]
 }
 
 model WorkHistory {

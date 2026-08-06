@@ -1,0 +1,49 @@
+enum ReviewType {
+  quarterly
+  semiannual
+  annual
+  monthly
+  probation
+}
+
+enum ReviewStatus {
+  pending
+  inprogress
+  draft
+  completed
+  overdue
+}
+
+model PerformanceReview {
+  id String @id @default(cuid())
+  reviewType ReviewType
+  reviewStatus ReviewStatus
+  consultant Consultant @relation(fields: [consultantId], references: [id])
+  consultantId String
+  client Client @relation(fields: [clientId], references: [id])
+  clientId String
+  country Country @relation(fields: [countryId], references: [id])
+  countryId String
+  dueDate DateTime
+  clientEmail String
+  dateCreate DateTime @default(now())
+  active Boolean @default(true)
+
+  /* All ratings will be 0-5 */
+  clientRating Float?
+  clientCompetencyRating Float?
+  clientCommunicationRating Float?
+  clientProblemSolvingRating Float?
+  clientKeyStrengths String?
+  clientAreasForImprovement String?
+  clientProjectFeedback String?
+
+  consultantSelfRating Float?
+  consultantSkillDevelopmentRating Float?
+  consultantTeamworkRating Float?
+  consultantGoalAchievementRating Float?
+  consultantKeyAchievements String?
+  consultantChallengesFaced String?
+  consultantFutureGoals String?
+}
+

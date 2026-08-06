@@ -10,6 +10,7 @@ model Client {
     contracts Contract[]
     active Boolean @default(true)
     dateCreate DateTime @default(now())
+    performanceReviews PerformanceReview[]
 }
 
 model ContractType {

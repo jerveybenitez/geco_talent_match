@@ -8,6 +8,7 @@ model Country{
     consultants Consultant[]
     users User[] @relation("UserCountriesHandled")
     contracts Contract[]
+    performanceReviews PerformanceReview[]
 }
 
 model Languages{

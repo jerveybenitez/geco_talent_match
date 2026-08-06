@@ -124,47 +124,6 @@
     @apply border-border outline-ring/50;
   }
 
-  :root {
-    --font-size: 16px;
-    --background: #f8f9fb;
-    --foreground: #1a1f4b;
-    --card: #ffffff;
-    --card-foreground: #1a1f4b;
-    --popover: #ffffff;
-    --popover-foreground: #1a1f4b;
-    --primary: #1a1f4b;
-    --primary-foreground: #ffffff;
-    --secondary: #f1f3f5;
-    --secondary-foreground: #1a1f4b;
-    --muted: #f1f3f5;
-    --muted-foreground: #64748b;
-    --accent: #e31e24;
-    --accent-foreground: #ffffff;
-    --destructive: #e31e24;
-    --destructive-foreground: #ffffff;
-    --border: #e2e8f0;
-    --input: transparent;
-    --input-background: #f8fafc;
-    --switch-background: #cbd5e1;
-    --font-weight-medium: 500;
-    --font-weight-normal: 400;
-    --ring: #1a1f4b;
-    --chart-1: #e31e24;
-    --chart-2: #1a1f4b;
-    --chart-3: #3b82f6;
-    --chart-4: #10b981;
-    --chart-5: #f59e0b;
-    --radius: 0.75rem;
-    --sidebar: #1a1f4b;
-    --sidebar-foreground: #ffffff;
-    --sidebar-primary: #e31e24;
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #2a2f5b;
-    --sidebar-accent-foreground: #ffffff;
-    --sidebar-border: #2a2f5b;
-    --sidebar-ring: #e31e24;
-  }
-
   body {
     @apply bg-background text-foreground;
   }
