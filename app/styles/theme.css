@@ -193,9 +193,9 @@
     color: var(--primary-foreground);
   }
 
-    /**************************************************************/
-   /* Some crap from the crappy demo file - header and dashboard */
-  /**************************************************************/
+    /*********************************************************/
+   /* Some crap from the crappy demo file - everything else */
+  /*********************************************************/
   .bg-popover {
     background-color: var(--popover);
   }

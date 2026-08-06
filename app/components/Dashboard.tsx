@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -32,22 +33,20 @@ interface DashboardContractExpiration {
 }
 
 interface DashboardProps {
-  onNavigate?: (view: string, filter?: { type: string; value: string }) => void;
   countries: DashboardCountry[];
   overalls: DashboardOveralls;
   contractRenewals: DashboardContractRenewal[];
   contractExpiration: DashboardContractExpiration[];
 }
 
-export function Dashboard({ onNavigate, countries, overalls, contractRenewals, contractExpiration }: DashboardProps) {
+export function Dashboard({ countries, overalls, contractRenewals, contractExpiration }: DashboardProps) {
+  const router = useRouter();
   const overdueReviews = mockPerformanceReviews
     .filter(r => r.status !== 'Completed' && new Date(r.dueDate) < new Date())
     .slice(0, 3);
 
   const handleViewConsultants = (country: string) => {
-    if (onNavigate) {
-      onNavigate('consultants', { type: 'location', value: country });
-    }
+    router.push(`/admin/consultants?location=${encodeURIComponent(country)}`);
   };
 
   return (

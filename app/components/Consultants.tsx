@@ -4,8 +4,15 @@ import type { ConsultantListItem } from "@/lib/consultantsData";
 interface ConsultantsProps {
   consultants: ConsultantListItem[];
   countries: { id: string; name: string; code: string }[];
+  initialLocationFilter?: string;
 }
 
-export function Consultants({ consultants, countries }: ConsultantsProps) {
-  return <ConsultantList consultants={consultants} countries={countries} />;
+export function Consultants({ consultants, countries, initialLocationFilter }: ConsultantsProps) {
+  return (
+    <ConsultantList
+      consultants={consultants}
+      countries={countries}
+      initialLocationFilter={initialLocationFilter}
+    />
+  );
 }

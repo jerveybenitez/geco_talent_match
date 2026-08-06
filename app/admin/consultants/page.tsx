@@ -3,7 +3,11 @@ import { getCurrentUser } from "@/lib/session";
 import { getConsultantsData } from "@/lib/consultantsData";
 import { Consultants } from "@/app/components/Consultants";
 
-export default async function ConsultantsPage() {
+export default async function ConsultantsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ location?: string }>;
+}) {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -16,5 +20,13 @@ export default async function ConsultantsPage() {
     redirect("/");
   }
 
-  return <Consultants consultants={data.consultants} countries={data.countries} />;
+  const { location } = await searchParams;
+
+  return (
+    <Consultants
+      consultants={data.consultants}
+      countries={data.countries}
+      initialLocationFilter={location}
+    />
+  );
 }
