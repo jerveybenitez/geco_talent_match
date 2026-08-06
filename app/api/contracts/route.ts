@@ -14,6 +14,7 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   const {
+    positionName,
     consultantId,
     clientId,
     contractTypeId,
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
     deploymentNote,
     allowances,
   } = body as {
+    positionName?: string;
     consultantId?: string;
     clientId?: string;
     contractTypeId?: string;
@@ -43,6 +45,9 @@ export async function POST(request: Request) {
     allowances?: unknown;
   };
 
+  if (!positionName) {
+    return NextResponse.json({ error: "Position name is required" }, { status: 400 });
+  }
   if (!consultantId || !clientId || !contractTypeId || !countryId || !city) {
     return NextResponse.json({ error: "Consultant, client, contract type, country and city are required" }, { status: 400 });
   }
@@ -57,8 +62,8 @@ export async function POST(request: Request) {
   }
 
   const [consultant, client] = await Promise.all([
-    prisma.consultant.findUnique({ where: { id: consultantId }, select: { user: { select: { name: true } } } }),
-    prisma.client.findUnique({ where: { id: clientId }, select: { name: true } }),
+    prisma.consultant.findUnique({ where: { id: consultantId }, select: { id: true } }),
+    prisma.client.findUnique({ where: { id: clientId }, select: { id: true } }),
   ]);
   if (!consultant) {
     return NextResponse.json({ error: "Consultant not found" }, { status: 400 });
@@ -69,7 +74,7 @@ export async function POST(request: Request) {
 
   const contract = await prisma.contract.create({
     data: {
-      name: `${consultant.user.name} - ${client.name}`,
+      name: positionName,
       city,
       countryId,
       consultantId,

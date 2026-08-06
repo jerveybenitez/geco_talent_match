@@ -61,7 +61,7 @@ async function main() {
  
   for (const u of initialSuperusers) {
     const hashedPassword = await bcrypt.hash(u.password, 10);
-    const countries = await prisma.country.findMany({
+    const countries2 = await prisma.country.findMany({
       where: { countryCode: { in: u.countryCodes } },
     });
 
@@ -75,7 +75,7 @@ async function main() {
         role: u.role,
         active: true,
         countriesHandled: {
-          connect: countries.map((c) => ({ id: c.id })),
+          connect: countries2.map((c) => ({ id: c.id })),
         },
       },
     });

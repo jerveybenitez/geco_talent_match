@@ -9,7 +9,7 @@ import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../ui/table";
-import { Search, Plus, Edit } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { ContractFormModal } from "./ContractFormModal";
 import { ContractSuccessModal } from "./ContractSuccessModal";
 import type { ContractFormOptions, ContractListItem, ContractStatus } from "@/lib/contractsData";
@@ -32,7 +32,6 @@ export function ContractList({ contracts: initialContracts, options }: ContractL
   const [statusFilter, setStatusFilter] = useState("all");
   const [countryFilter, setCountryFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
-  const [editingContract, setEditingContract] = useState<ContractListItem | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successAction, setSuccessAction] = useState<"created" | "updated">("created");
 
@@ -45,28 +44,10 @@ export function ContractList({ contracts: initialContracts, options }: ContractL
     return matchesSearch && matchesStatus && matchesCountry;
   });
 
-  const handleToggleActive = async (contract: ContractListItem) => {
-    const nextActive = !contract.active;
-    try {
-      const res = await fetch(`/api/contracts/${contract.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ active: nextActive }),
-      });
-      if (!res.ok) return;
-
-      const updated = await res.json();
-      setContracts((prev) => prev.map((c) => (c.id === contract.id ? updated : c)));
-    } catch {
-      // leave status unchanged if the request fails
-    }
-  };
-
   const handleSaved = (saved: ContractListItem, action: "created" | "updated") => {
     setContracts((prev) =>
       action === "updated" ? prev.map((c) => (c.id === saved.id ? saved : c)) : [saved, ...prev]
     );
-    setEditingContract(null);
     setSuccessAction(action);
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
@@ -79,12 +60,7 @@ export function ContractList({ contracts: initialContracts, options }: ContractL
           <h2 className="text-2xl font-bold tracking-tight">Contract Management</h2>
           <p className="text-muted-foreground">Manage consultant contracts and track renewals</p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingContract(null);
-            setShowForm(true);
-          }}
-        >
+        <Button onClick={() => setShowForm(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Add Contract
         </Button>
@@ -153,12 +129,12 @@ export function ContractList({ contracts: initialContracts, options }: ContractL
                 <TableHead>Consultant</TableHead>
                 <TableHead>Client</TableHead>
                 <TableHead>Contract Type</TableHead>
-                <TableHead>Location</TableHead>
+                <TableHead>Position</TableHead>
                 <TableHead>Start Date</TableHead>
                 <TableHead>End Date</TableHead>
+                <TableHead>Renewal Date</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Active</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -169,42 +145,19 @@ export function ContractList({ contracts: initialContracts, options }: ContractL
                   <TableCell>
                     <Badge variant="outline">{contract.contractType}</Badge>
                   </TableCell>
-                  <TableCell>{contract.city}, {contract.country}</TableCell>
+                  <TableCell>{contract.positionName}</TableCell>
                   <TableCell>{new Date(contract.contractstartDate).toLocaleDateString()}</TableCell>
                   <TableCell>{new Date(contract.contractendDate).toLocaleDateString()}</TableCell>
                   <TableCell>
-                    <Badge variant={statusBadgeVariant[contract.status]}>{contract.status}</Badge>
+                    {contract.renewalDate ? new Date(contract.renewalDate).toLocaleDateString() : "N/A"}
                   </TableCell>
                   <TableCell>
-                    <button
-                      onClick={() => handleToggleActive(contract)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        contract.active ? "bg-green-500" : "bg-gray-300"
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          contract.active ? "translate-x-6" : "translate-x-1"
-                        }`}
-                      />
-                    </button>
+                    <Badge variant={statusBadgeVariant[contract.status]}>{contract.status}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/admin/contracts/${contract.id}`}>View</Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setEditingContract(contract);
-                          setShowForm(true);
-                        }}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`/admin/contracts/${contract.id}`}>View Details</Link>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -223,11 +176,8 @@ export function ContractList({ contracts: initialContracts, options }: ContractL
 
       <ContractFormModal
         open={showForm}
-        onOpenChange={(open) => {
-          setShowForm(open);
-          if (!open) setEditingContract(null);
-        }}
-        editingContract={editingContract}
+        onOpenChange={setShowForm}
+        editingContract={null}
         options={options}
         onSaved={handleSaved}
       />

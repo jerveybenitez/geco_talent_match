@@ -30,7 +30,7 @@ export function Sidebar({ open }: SidebarProps) {
       <nav className="p-4 space-y-2">
         {navigationItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Button
               key={item.href}

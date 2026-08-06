@@ -23,6 +23,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const body = await request.json();
   const {
+    positionName,
     consultantId,
     clientId,
     contractTypeId,
@@ -38,6 +39,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     active,
     allowances,
   } = body as {
+    positionName?: string;
     consultantId?: string;
     clientId?: string;
     contractTypeId?: string;
@@ -54,6 +56,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     allowances?: unknown;
   };
 
+  if (positionName !== undefined && !positionName) {
+    return NextResponse.json({ error: "Position name is required" }, { status: 400 });
+  }
   if (monthlySalary !== undefined && Number(monthlySalary) <= 0) {
     return NextResponse.json({ error: "Monthly salary must be greater than 0" }, { status: 400 });
   }
@@ -62,17 +67,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Contract end date must be after the start date" }, { status: 400 });
   }
 
-  let name: string | undefined;
   if (consultantId !== undefined || clientId !== undefined) {
     const [consultant, client] = await Promise.all([
-      prisma.consultant.findUnique({
-        where: { id: consultantId ?? existing.consultantId },
-        select: { user: { select: { name: true } } },
-      }),
-      prisma.client.findUnique({
-        where: { id: clientId ?? existing.clientId },
-        select: { name: true },
-      }),
+      prisma.consultant.findUnique({ where: { id: consultantId ?? existing.consultantId }, select: { id: true } }),
+      prisma.client.findUnique({ where: { id: clientId ?? existing.clientId }, select: { id: true } }),
     ]);
     if (!consultant) {
       return NextResponse.json({ error: "Consultant not found" }, { status: 400 });
@@ -80,14 +78,13 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (!client) {
       return NextResponse.json({ error: "Client not found" }, { status: 400 });
     }
-    name = `${consultant.user.name} - ${client.name}`;
   }
 
   await prisma.$transaction(async (tx) => {
     await tx.contract.update({
       where: { id },
       data: {
-        ...(name !== undefined && { name }),
+        ...(positionName !== undefined && { name: positionName }),
         ...(consultantId !== undefined && { consultantId }),
         ...(clientId !== undefined && { clientId }),
         ...(contractTypeId !== undefined && { contractTypeId }),

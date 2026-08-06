@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Edit, Calendar, DollarSign, Briefcase, Mail, Phone, MapPin, History, AlertCircle } from "lucide-react";
 import type { ContractDetail as ContractDetailData, ContractFormOptions, ContractListItem, ContractStatus } from "@/lib/contractsData";
 import { ContractFormModal } from "./ContractFormModal";
+import { ContractSuccessModal } from "./ContractSuccessModal";
 
 const statusBadgeVariant: Record<ContractStatus, "default" | "secondary" | "destructive" | "outline"> = {
   Active: "default",
@@ -34,9 +35,12 @@ interface ContractDetailProps {
 export function ContractDetail({ contract: initialContract, options }: ContractDetailProps) {
   const [contract, setContract] = useState<ContractDetailData>(initialContract);
   const [showForm, setShowForm] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleSaved = (saved: ContractListItem) => {
     setContract((prev) => ({ ...prev, ...saved }));
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
   };
 
   const totalAllowances = contract.allowances.reduce((sum, allowance) => sum + allowance.amountUsd, 0);
@@ -261,6 +265,8 @@ export function ContractDetail({ contract: initialContract, options }: ContractD
         options={options}
         onSaved={handleSaved}
       />
+
+      <ContractSuccessModal open={showSuccess} onOpenChange={setShowSuccess} action="updated" />
     </div>
   );
 }

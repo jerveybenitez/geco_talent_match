@@ -14,7 +14,7 @@ model Client {
 
 model ContractType {
     id String @id @default(cuid())
-    name String
+    name String @unique
     contracts Contract[]
     description String?
     active Boolean @default(true)

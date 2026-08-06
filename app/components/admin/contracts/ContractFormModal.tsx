@@ -19,6 +19,7 @@ interface AllowanceFormRow {
 }
 
 const emptyFormData = {
+  positionName: "",
   countryId: "",
   city: "",
   clientId: "",
@@ -40,6 +41,7 @@ function toDateInputValue(iso: string) {
 
 function formDataFromContract(contract: ContractListItem) {
   return {
+    positionName: contract.positionName,
     countryId: contract.countryId,
     city: contract.city,
     clientId: contract.clientId,
@@ -107,6 +109,10 @@ function ContractFormBody({ editingContract, options, onCancel, onSaved }: Contr
   const [formError, setFormError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  const consultantsForSelectedCountry = formData.countryId
+    ? options.consultants.filter((consultant) => consultant.countryId === formData.countryId)
+    : options.consultants;
+
   const handleAddAllowance = () => {
     setFormData({
       ...formData,
@@ -130,6 +136,10 @@ function ContractFormBody({ editingContract, options, onCancel, onSaved }: Contr
   const handleSave = async () => {
     setFormError(null);
 
+    if (!formData.positionName) {
+      setFormError("Position name is required");
+      return;
+    }
     if (!formData.countryId || !formData.city || !formData.clientId || !formData.consultantId || !formData.contractTypeId) {
       setFormError("Country, city, client, consultant and contract type are required");
       return;
@@ -153,6 +163,7 @@ function ContractFormBody({ editingContract, options, onCancel, onSaved }: Contr
         method: editingContract ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          positionName: formData.positionName,
           countryId: formData.countryId,
           city: formData.city,
           clientId: formData.clientId,
@@ -185,12 +196,34 @@ function ContractFormBody({ editingContract, options, onCancel, onSaved }: Contr
 
   return (
     <div className="space-y-6 py-2">
+      {/* Position */}
+      <div>
+        <Label htmlFor="positionName">Position Name *</Label>
+        <Input
+          id="positionName"
+          value={formData.positionName}
+          onChange={(e) => setFormData({ ...formData, positionName: e.target.value })}
+          placeholder="e.g., Senior Business Analyst"
+        />
+      </div>
+
       {/* Location and Client Selection */}
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label htmlFor="country">Country *</Label>
-            <Select value={formData.countryId} onValueChange={(value) => setFormData({ ...formData, countryId: value })}>
+            <Select
+              value={formData.countryId}
+              onValueChange={(value) => {
+                const selectedConsultant = options.consultants.find((c) => c.id === formData.consultantId);
+                const consultantStillValid = selectedConsultant?.countryId === value;
+                setFormData({
+                  ...formData,
+                  countryId: value,
+                  consultantId: consultantStillValid ? formData.consultantId : "",
+                });
+              }}
+            >
               <SelectTrigger id="country">
                 <SelectValue placeholder="Select country" />
               </SelectTrigger>
@@ -230,12 +263,23 @@ function ContractFormBody({ editingContract, options, onCancel, onSaved }: Contr
 
           <div>
             <Label htmlFor="consultant">Consultant *</Label>
-            <Select value={formData.consultantId} onValueChange={(value) => setFormData({ ...formData, consultantId: value })}>
+            <Select
+              value={formData.consultantId}
+              onValueChange={(value) => {
+                const consultant = options.consultants.find((c) => c.id === value);
+                setFormData({
+                  ...formData,
+                  consultantId: value,
+                  countryId: consultant ? consultant.countryId : formData.countryId,
+                  gecoJoinDate: consultant ? toDateInputValue(consultant.dateCreate) : formData.gecoJoinDate,
+                });
+              }}
+            >
               <SelectTrigger id="consultant">
                 <SelectValue placeholder="Select consultant" />
               </SelectTrigger>
               <SelectContent>
-                {options.consultants.map((consultant) => (
+                {consultantsForSelectedCountry.map((consultant) => (
                   <SelectItem key={consultant.id} value={consultant.id}>
                     {consultant.name} - {consultant.role}
                   </SelectItem>

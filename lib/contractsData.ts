@@ -36,6 +36,7 @@ export interface ContractAllowanceItem {
 
 export interface ContractListItem {
     id: string;
+    positionName: string;
     consultantId: string;
     consultantName: string;
     consultantPhoto: string | null;
@@ -69,7 +70,7 @@ export interface ContractFormOptions {
     countries: { id: string; name: string; code: string }[];
     clients: { id: string; name: string }[];
     contractTypes: { id: string; name: string }[];
-    consultants: { id: string; name: string; role: string }[];
+    consultants: { id: string; name: string; role: string; countryId: string; dateCreate: string }[];
 }
 
 const contractInclude = {
@@ -103,6 +104,7 @@ function deriveStatus(active: boolean, contractendDate: Date): ContractStatus {
 function mapContract(contract: ContractWithRelations): ContractListItem {
     return {
         id: contract.id,
+        positionName: contract.name,
         consultantId: contract.consultantId,
         consultantName: contract.consultant.user.name,
         consultantPhoto: contract.consultant.user.image,
@@ -160,7 +162,13 @@ async function getFormOptions(countryIds: string[]): Promise<ContractFormOptions
         prisma.consultant.findMany({
             where: { active: true, countryId: { in: countryIds } },
             orderBy: { user: { name: "asc" } },
-            select: { id: true, user: { select: { name: true } }, job: { select: { name: true } } },
+            select: {
+                id: true,
+                countryId: true,
+                dateCreate: true,
+                user: { select: { name: true } },
+                job: { select: { name: true } },
+            },
         }),
     ]);
 
@@ -172,6 +180,8 @@ async function getFormOptions(countryIds: string[]): Promise<ContractFormOptions
             id: consultant.id,
             name: consultant.user.name,
             role: consultant.job.name,
+            countryId: consultant.countryId,
+            dateCreate: consultant.dateCreate.toISOString(),
         })),
     };
 }
