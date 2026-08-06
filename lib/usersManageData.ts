@@ -1,5 +1,25 @@
 import { prisma } from "@/lib/prisma";
 
+export type Role = "superadmin" | "admin" | "user";
+
+export interface Country {
+    id: string;
+    name: string;
+    countryCode: string;
+}
+
+export interface ManagedUser {
+    id: string;
+    name: string;
+    email: string;
+    phone: string | null;
+    role: Role;
+    active: boolean;
+    image: string | null;
+    countriesHandled: Country[];
+    lastLogin: string | Date | null;
+}
+
 export async function getUsersManageData() {
     const [users, countries] = await Promise.all([
         prisma.user.findMany({
