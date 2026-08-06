@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Header } from "@/app/components/Header";
-import { Sidebar } from "@/app/components/Sidebar";
+import { Header } from "@/app/components/admin/Header";
+import { Sidebar } from "@/app/components/admin/Sidebar";
 
 interface DashboardShellProps {
   user: {

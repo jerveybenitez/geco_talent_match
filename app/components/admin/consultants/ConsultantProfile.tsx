@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
+import { Button } from "../../ui/button";
+import { Badge } from "../../ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../ui/table";
 import {
   MapPin,
   Calendar,
@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import type { ContractStatus } from "@/lib/contractsData";
 import type { ConsultantProfileData } from "@/lib/consultantsData";
-import { ImageWithFallback } from "../ui/ImageWithFallback";
+import { ImageWithFallback } from "../../ui/ImageWithFallback";
 import { ConsultantFormModal } from "./ConsultantFormModal";
 
 const contractStatusVariant: Record<ContractStatus, "default" | "secondary" | "destructive" | "outline"> = {

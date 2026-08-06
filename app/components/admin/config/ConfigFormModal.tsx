@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { Textarea } from "../ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Button } from "../../ui/button";
+import { Input } from "../../ui/input";
+import { Label } from "../../ui/label";
+import { Textarea } from "../../ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../ui/dialog";
 import type { ConfigField, ConfigRow } from "./types";
 
 interface ConfigFormModalProps {

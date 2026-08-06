@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "../ui/button";
-import { Dialog, DialogContent } from "../ui/dialog";
+import { Button } from "../../ui/button";
+import { Dialog, DialogContent } from "../../ui/dialog";
 import { CheckCircle2 } from "lucide-react";
 
 interface ConfigSuccessModalProps {

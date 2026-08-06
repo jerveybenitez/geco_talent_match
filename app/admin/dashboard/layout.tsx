@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { DashboardShell } from "@/app/components/DashboardShell";
+import { DashboardShell } from "@/app/components/admin/DashboardShell";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const sessionUser = await getCurrentUser();

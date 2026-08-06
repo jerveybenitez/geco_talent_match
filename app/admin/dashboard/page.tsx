@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getDashboardData } from "@/lib/dashboardData";
-import { Dashboard } from "@/app/components/Dashboard";
+import { Dashboard } from "@/app/components/admin/Dashboard";
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();

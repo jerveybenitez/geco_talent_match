@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Users, FileText, TrendingUp } from "lucide-react";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 
 const navigationItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },

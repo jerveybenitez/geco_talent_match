@@ -2,15 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { Menu, X, ChevronDown, Settings, LogOut, Users, Database } from "lucide-react";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "../ui/dropdown-menu";
 
 interface HeaderUser {
   name: string;

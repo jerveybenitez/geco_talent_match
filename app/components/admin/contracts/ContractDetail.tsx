@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
+import { Button } from "../../ui/button";
+import { Badge } from "../../ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../ui/table";
 import { Edit, Calendar, DollarSign, Briefcase, Mail, Phone, MapPin, History, AlertCircle } from "lucide-react";
 import type { ContractDetail as ContractDetailData, ContractFormOptions, ContractListItem, ContractStatus } from "@/lib/contractsData";
 import { ContractFormModal } from "./ContractFormModal";

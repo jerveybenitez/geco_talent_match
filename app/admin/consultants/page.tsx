@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getConsultantsData } from "@/lib/consultantsData";
-import { Consultants } from "@/app/components/Consultants";
+import { Consultants } from "@/app/components/admin/Consultants";
 
 export default async function ConsultantsPage({
   searchParams,

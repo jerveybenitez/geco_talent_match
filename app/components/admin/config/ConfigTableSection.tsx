@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent } from "../ui/card";
-import { Button } from "../ui/button";
+import { Card, CardContent } from "../../ui/card";
+import { Button } from "../../ui/button";
 import { Edit, Plus } from "lucide-react";
 import { ConfigFormModal } from "./ConfigFormModal";
 import { ConfigSuccessModal } from "./ConfigSuccessModal";

@@ -1,16 +1,16 @@
 "use client";
 
-import { Button } from "../ui/button";
-import { Dialog, DialogContent } from "../ui/dialog";
+import { Button } from "../../ui/button";
+import { Dialog, DialogContent } from "../../ui/dialog";
 import { CheckCircle2 } from "lucide-react";
 
-interface ContractSuccessModalProps {
+interface UserSuccessModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   action: "created" | "updated";
 }
 
-export function ContractSuccessModal({ open, onOpenChange, action }: ContractSuccessModalProps) {
+export function UserSuccessModal({ open, onOpenChange, action }: UserSuccessModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
@@ -19,14 +19,16 @@ export function ContractSuccessModal({ open, onOpenChange, action }: ContractSuc
             <CheckCircle2 className="h-8 w-8 text-green-600" />
           </div>
           <h3 className="text-xl font-bold mb-2">
-            {action === "updated" ? "Contract Updated Successfully!" : "Contract Created Successfully!"}
+            {action === "updated" ? "User Updated Successfully!" : "User Created Successfully!"}
           </h3>
           <p className="text-sm text-muted-foreground mb-6">
             {action === "updated"
-              ? "The contract has been updated"
-              : "The new contract has been added"}
+              ? "User information has been updated"
+              : "The new user account has been created and they will receive a welcome email"}
           </p>
-          <Button onClick={() => onOpenChange(false)}>Done</Button>
+          <Button onClick={() => onOpenChange(false)}>
+            Done
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

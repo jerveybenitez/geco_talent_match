@@ -1,11 +1,11 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
 import { Users, FileText, AlertCircle, ClipboardCheck, UserPlus, Upload, Calendar, LogOut, TrendingUp, Clock, MapPin } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { engagementTrendData, mockPerformanceReviews } from "../data/mockData";
+import { engagementTrendData, mockPerformanceReviews } from "../../data/mockData";
 
 interface DashboardCountry {
   countryId: string;

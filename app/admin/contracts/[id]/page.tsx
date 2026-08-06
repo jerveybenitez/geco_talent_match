@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getContractById } from "@/lib/contractsData";
-import { ContractDetail } from "@/app/components/contracts/ContractDetail";
+import { ContractDetail } from "@/app/components/admin/contracts/ContractDetail";
 
 export default async function ContractDetailPage({
   params,
