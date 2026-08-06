@@ -21,6 +21,12 @@ const rolePriority: Record<Role, number> = {
   user: 2,
 };
 
+function coversAllActiveCountries(user: ManagedUser, countries: Country[]) {
+  if (countries.length === 0) return false;
+  const handledIds = new Set(user.countriesHandled.map((c) => c.id));
+  return countries.every((country) => handledIds.has(country.id));
+}
+
 function formatLastLogin(lastLogin: string | Date | null) {
   if (!lastLogin) return "Never";
   return new Date(lastLogin).toLocaleString("en-US", {
@@ -176,8 +182,8 @@ export function UserList({ users, countries, onAddUser, onEditUser, onToggleStat
 
                 {/* Country */}
                 <div className="col-span-2">
-                  {countries.length > 0 && user.countriesHandled.length === countries.length ? (
-                    <Badge variant="outline">All Countries</Badge>
+                  {user.role === "superadmin" || coversAllActiveCountries(user, countries) ? (
+                    <Badge variant="outline">All Regions</Badge>
                   ) : (
                     <div className="flex flex-wrap gap-1">
                       {user.countriesHandled.map((country) => (
