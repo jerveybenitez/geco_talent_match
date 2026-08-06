@@ -36,11 +36,13 @@ async function getAdminCountries(userId: string) {
 
   return {
     countryIds: user.countriesHandled.map((country) => country.id),
-    countries: user.countriesHandled.map((country) => ({
-      id: country.id,
-      name: country.name,
-      code: country.countryCode,
-    })),
+    countries: user.countriesHandled
+      .filter((country) => country.active)
+      .map((country) => ({
+        id: country.id,
+        name: country.name,
+        code: country.countryCode,
+      })),
   };
 }
 

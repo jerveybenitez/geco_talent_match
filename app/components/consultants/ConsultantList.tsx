@@ -24,7 +24,7 @@ export function ConsultantList({ initialLocationFilter = "all", consultants, cou
   const [statusFilter, setStatusFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState(initialLocationFilter);
 
-  const locations = Array.from(new Set(consultants.map((c) => c.country))).sort();
+  const locations = countries.map((c) => c.name).sort();
 
   const filteredConsultants = consultants.filter(consultant => {
     const matchesSearch = consultant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

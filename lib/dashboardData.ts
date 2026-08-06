@@ -26,14 +26,17 @@ export async function getDashboardData(userid: string) {
         }
     });
 
-    const countries = user.countriesHandled.map((country) => ({
-        country: country.name,
-        countryId: country.id,
-        code: country.countryCode,
-        consultants: consultants.filter((consultant) =>
-            consultant.user.countriesHandled.some((c) => c.id === country.id)
-        )
-    }));
+    const countries = user.countriesHandled
+        .filter((country) => country.active)
+        .map((country) => ({
+            country: country.name,
+            countryId: country.id,
+            code: country.countryCode,
+            consultants: consultants.filter((consultant) =>
+                consultant.user.countriesHandled.some((c) => c.id === country.id)
+            )
+        }))
+        .sort((a, b) => b.consultants.length - a.consultants.length || a.country.localeCompare(b.country));
 
     const now = new Date();
     const in30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Menu, X, ChevronDown, Settings, LogOut, Users } from "lucide-react";
+import { Menu, X, ChevronDown, Settings, LogOut, Users, Database } from "lucide-react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import {
@@ -47,6 +47,10 @@ export function Header({ sidebarOpen, onToggleSidebar, user }: HeaderProps) {
 
   const handleUsersManagement = () => {
     router.push("/admin/usersmanage");
+  }
+
+  const handleConfigTables = () => {
+    router.push("/admin/config");
   }
 
   return (
@@ -102,6 +106,10 @@ export function Header({ sidebarOpen, onToggleSidebar, user }: HeaderProps) {
                 {user.role === "superadmin" && (
                   <>
                     <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleConfigTables}>
+                      <Database className="mr-2 h-4 w-4" />
+                      Config Tables
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleUsersManagement}>
                       <Settings className="mr-2 h-4 w-4" />
                       User Management
