@@ -211,4 +211,14 @@
   .bg-secondary {
     background-color: var(--secondary);
   }
+
+  .bg-muted {
+    background-color: var(--muted);
+  }
+
+  .data-\[state\=active\]\:bg-card {
+    &[data-state="active"] {
+        background-color: var(--card);
+    }
+  }
 }
