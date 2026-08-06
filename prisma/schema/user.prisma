@@ -53,18 +53,8 @@ model Consultant {
   availableTo DateTime
   active Boolean @default(true)
   dateCreate DateTime @default(now())
-  contracts Contracts[]
+  contracts Contract[]
   workHistory WorkHistory[]
-}
-
-model Contracts {
-  id String @id @default(cuid())
-  consultantId String
-  consultant Consultant @relation(fields: [consultantId], references: [id])
-  startDate DateTime
-  endDate DateTime
-  dateCreate DateTime @default(now())
-  active Boolean @default(true)
 }
 
 model WorkHistory {

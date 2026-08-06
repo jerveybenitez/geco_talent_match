@@ -17,15 +17,15 @@ async function main() {
     { name: 'Vietnam', countryCode: 'VN', phone: '+84' },
   ]
 
-  for (const country of countries) {
-    await prisma.country.upsert({
-      where: { countryCode: country.countryCode },
-      update: {},
-      create: country,
-    })
-  }
+  const contractTypes = [
+    { name: 'UST', description: "Upskill Today" },
+    { name: 'BAU', description: "Business As Usual" },
+    { name: 'CLT', description: "Contract to Hire" },
+    { name: 'ESG', description: "Environmental, Social, and Governance" },
+    { name: 'Others', description: 'Other types of contracts' },
+  ]
 
-  const superusers = [{
+  const initialSuperusers = [{
     email: "jervey.benitez@geco.asia",
     name: "Jervey",
     password: "jerveypassword",
@@ -42,8 +42,24 @@ async function main() {
     active: true,
     countryCodes: ["SG", "TH", "ID", "PH", "MY", "VN"]
   }]
+
+  for (const country of countries) {
+    await prisma.country.upsert({
+      where: { countryCode: country.countryCode },
+      update: {},
+      create: country,
+    })
+  }
+
+  for (const contractType of contractTypes) {
+    await prisma.contractType.upsert({
+      where: { name: contractType.name },
+      update: {},
+      create: contractType,
+    })
+  }
  
-  for (const u of superusers) {
+  for (const u of initialSuperusers) {
     const hashedPassword = await bcrypt.hash(u.password, 10);
     const countries = await prisma.country.findMany({
       where: { countryCode: { in: u.countryCodes } },
@@ -65,8 +81,7 @@ async function main() {
     });
   }
 
-  console.log('Seeded countries ✅')
-  console.log("Seeded superadmin ✅");
+  console.log('Seeded countries, contract types, and superusers');
 }
 
 main()

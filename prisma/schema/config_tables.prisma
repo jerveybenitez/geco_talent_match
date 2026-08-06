@@ -7,6 +7,7 @@ model Country{
     active Boolean @default(true)
     consultants Consultant[]
     users User[] @relation("UserCountriesHandled")
+    contracts Contract[]
 }
 
 model Languages{
