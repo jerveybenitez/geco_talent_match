@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
-import { getDashboardData } from "@/lib/dashboardData";
+import { getPerformanceReviewsData } from "@/lib/performanceData";
 import { Performance } from "@/app/components/admin/performance/Performance";
 
 export default async function PerformancePage() {
@@ -10,18 +10,11 @@ export default async function PerformancePage() {
     redirect("/");
   }
 
-  const data = await getDashboardData(user.id);
+  const data = await getPerformanceReviewsData(user.id);
 
   if (!data) {
     redirect("/");
   }
 
-  return (
-    <Performance
-      countries={data.countries}
-      overalls={data.overalls}
-      contractRenewals={data.contractRenewals}
-      contractExpiration={data.contractExpiration}
-    />
-  );
+  return <Performance reviews={data.reviews} options={data.options} />;
 }

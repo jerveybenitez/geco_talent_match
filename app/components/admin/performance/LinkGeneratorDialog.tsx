@@ -14,14 +14,17 @@ interface LinkGeneratorDialogProps {
   type: 'orientation' | 'performance-review' | 'exit-interview';
   recipientEmail?: string;
   recipientName?: string;
+  /** Use a pre-generated link instead of creating a random-token one (e.g. a link already saved to the record). */
+  link?: string;
 }
 
-export function LinkGeneratorDialog({ 
-  open, 
-  onOpenChange, 
-  type, 
+export function LinkGeneratorDialog({
+  open,
+  onOpenChange,
+  type,
   recipientEmail,
-  recipientName 
+  recipientName,
+  link: providedLink,
 }: LinkGeneratorDialogProps) {
   const [copied, setCopied] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -29,7 +32,7 @@ export function LinkGeneratorDialog({
   const generateLink = () => {
     const baseUrl = window.location.origin;
     const token = Math.random().toString(36).substring(2, 15);
-    
+
     switch (type) {
       case 'orientation':
         return `${baseUrl}/onboarding/orientation/${token}`;
@@ -42,7 +45,7 @@ export function LinkGeneratorDialog({
     }
   };
 
-  const link = generateLink();
+  const link = providedLink ?? generateLink();
 
   const getTitle = () => {
     switch (type) {

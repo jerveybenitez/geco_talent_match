@@ -17,49 +17,77 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../ui/select";
-import { mockConsultants } from "../../../data/mockData";
 import { LinkGeneratorDialog } from "./LinkGeneratorDialog";
-
-// Mock client list (same as in ContractManagement)
-const mockClients = [
-  "ABC Bank",
-  "Tech Innovations Pte Ltd",
-  "RetailCorp",
-  "DesignHub Korea",
-  "FinTech Solutions",
-  "Healthcare Corp",
-  "E-Commerce Global",
-  "Manufacturing Inc",
-  "Consulting Partners",
-  "Digital Marketing Agency",
-];
+import { REVIEW_TYPE_LABELS } from "@/lib/performanceTypes";
+import type { PerformanceReviewFormOptions, PerformanceReviewItem } from "@/lib/performanceTypes";
 
 interface PerformanceReviewFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  options: PerformanceReviewFormOptions;
+  onCreated: (review: PerformanceReviewItem) => void;
 }
 
 export function PerformanceReviewFormDialog({
   open,
   onOpenChange,
+  options,
+  onCreated,
 }: PerformanceReviewFormDialogProps) {
-  const [showLinkGenerator, setShowLinkGenerator] =
-    useState(false);
-  const [selectedLocation, setSelectedLocation] =
-    useState<string>("");
-  const [selectedClient, setSelectedClient] =
-    useState<string>("");
-  const [selectedConsultant, setSelectedConsultant] =
-    useState<string>("");
+  const [showLinkGenerator, setShowLinkGenerator] = useState(false);
+  const [createdReview, setCreatedReview] = useState<PerformanceReviewItem | null>(null);
+  const [countryId, setCountryId] = useState<string>("");
+  const [clientId, setClientId] = useState<string>("");
+  const [consultantId, setConsultantId] = useState<string>("");
   const [reviewType, setReviewType] = useState<string>("");
+  const [dueDate, setDueDate] = useState<string>("");
+  const [clientEmail, setClientEmail] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const consultant = mockConsultants.find(
-    (c) => c.id === selectedConsultant,
-  );
+  const consultant = options.consultants.find((c) => c.id === consultantId);
 
-  const handleCreateReview = () => {
-    // After creating review, show link generator
-    setShowLinkGenerator(true);
+  const resetForm = () => {
+    setCountryId("");
+    setClientId("");
+    setConsultantId("");
+    setReviewType("");
+    setDueDate("");
+    setClientEmail("");
+    setError(null);
+  };
+
+  const handleCreateReview = async () => {
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/performance-reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviewType, consultantId, clientId, countryId, dueDate, clientEmail }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Failed to create the review");
+      }
+      const created = (await res.json()) as PerformanceReviewItem;
+
+      const link = `${window.location.origin}/performance/review/${created.id}`;
+      const linkRes = await fetch(`/api/performance-reviews/${created.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ linkGenerate: link }),
+      });
+      const withLink = linkRes.ok ? ((await linkRes.json()) as PerformanceReviewItem) : { ...created, linkGenerate: link };
+
+      onCreated(withLink);
+      setCreatedReview(withLink);
+      setShowLinkGenerator(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create the review");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -76,31 +104,18 @@ export function PerformanceReviewFormDialog({
               <div className="space-y-2">
                 <Label htmlFor="location">Location *</Label>
                 <Select
-                  value={selectedLocation}
-                  onValueChange={setSelectedLocation}
+                  value={countryId}
+                  onValueChange={setCountryId}
                 >
                   <SelectTrigger id="location">
                     <SelectValue placeholder="Select location" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Manila, Philippines">
-                      Manila, Philippines
-                    </SelectItem>
-                    <SelectItem value="Singapore">
-                      Singapore
-                    </SelectItem>
-                    <SelectItem value="Bangkok, Thailand">
-                      Bangkok, Thailand
-                    </SelectItem>
-                    <SelectItem value="Kuala Lumpur, Malaysia">
-                      Kuala Lumpur, Malaysia
-                    </SelectItem>
-                    <SelectItem value="Jakarta, Indonesia">
-                      Jakarta, Indonesia
-                    </SelectItem>
-                    <SelectItem value="Ho Chi Minh, Vietnam">
-                      Ho Chi Minh, Vietnam
-                    </SelectItem>
+                    {options.countries.map((country) => (
+                      <SelectItem key={country.id} value={country.id}>
+                        {country.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -108,16 +123,16 @@ export function PerformanceReviewFormDialog({
               <div className="space-y-2">
                 <Label htmlFor="client">Client *</Label>
                 <Select
-                  value={selectedClient}
-                  onValueChange={setSelectedClient}
+                  value={clientId}
+                  onValueChange={setClientId}
                 >
                   <SelectTrigger id="client">
                     <SelectValue placeholder="Select client" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockClients.map((client, idx) => (
-                      <SelectItem key={idx} value={client}>
-                        {client}
+                    {options.clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -129,14 +144,14 @@ export function PerformanceReviewFormDialog({
                   Select Consultant *
                 </Label>
                 <Select
-                  value={selectedConsultant}
-                  onValueChange={setSelectedConsultant}
+                  value={consultantId}
+                  onValueChange={setConsultantId}
                 >
                   <SelectTrigger id="consultant">
                     <SelectValue placeholder="Choose consultant" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockConsultants.map((consultant) => (
+                    {options.consultants.map((consultant) => (
                       <SelectItem
                         key={consultant.id}
                         value={consultant.id}
@@ -160,35 +175,30 @@ export function PerformanceReviewFormDialog({
                     <SelectValue placeholder="Choose review type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Quarterly">
-                      Quarterly Review
-                    </SelectItem>
-                    <SelectItem value="Semi-Annual">
-                      Semi-Annual Review
-                    </SelectItem>
-                    <SelectItem value="Probation">
-                      Probation Review
-                    </SelectItem>
-                    <SelectItem value="Annual">
-                      Annual Review
-                    </SelectItem>
+                    {Object.entries(REVIEW_TYPE_LABELS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label} Review
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="due-date">Due Date *</Label>
-                <Input id="due-date" type="date" />
+                <Input id="due-date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="client-email">
-                  Client/Manager Email
+                  Client/Manager Email *
                 </Label>
                 <Input
                   id="client-email"
                   type="email"
                   placeholder="client@company.com"
+                  value={clientEmail}
+                  onChange={(e) => setClientEmail(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   A secure link will be sent to this email for
@@ -196,6 +206,8 @@ export function PerformanceReviewFormDialog({
                 </p>
               </div>
             </div>
+
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
             <div className="flex justify-end gap-2 pt-4">
               <Button
@@ -207,10 +219,13 @@ export function PerformanceReviewFormDialog({
               <Button
                 onClick={handleCreateReview}
                 disabled={
-                  !selectedLocation ||
-                  !selectedClient ||
-                  !selectedConsultant ||
-                  !reviewType
+                  submitting ||
+                  !countryId ||
+                  !clientId ||
+                  !consultantId ||
+                  !reviewType ||
+                  !dueDate ||
+                  !clientEmail
                 }
               >
                 Create & Generate Links
@@ -220,16 +235,19 @@ export function PerformanceReviewFormDialog({
         </DialogContent>
       </Dialog>
 
-      {consultant && (
+      {consultant && createdReview && (
         <LinkGeneratorDialog
           open={showLinkGenerator}
           onOpenChange={(open) => {
             setShowLinkGenerator(open);
             if (!open) {
               onOpenChange(false);
+              resetForm();
+              setCreatedReview(null);
             }
           }}
           type="performance-review"
+          link={createdReview.linkGenerate ?? undefined}
           recipientName={consultant.name}
           recipientEmail={consultant.email}
         />

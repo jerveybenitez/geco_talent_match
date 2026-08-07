@@ -7,17 +7,28 @@ enum ReviewType {
 }
 
 enum ReviewStatus {
-  pending
   inprogress
   draft
   completed
   overdue
 }
 
+enum ClientReviewStatus {
+  pending
+  replied
+}
+
+enum ConsultantReviewStatus {
+  pending
+  replied
+}
+
 model PerformanceReview {
   id String @id @default(cuid())
   reviewType ReviewType
-  reviewStatus ReviewStatus
+  reviewStatus ReviewStatus @default(inprogress)
+  clientStatus ClientReviewStatus @default(pending)
+  consultantStatus ConsultantReviewStatus @default(pending)
   consultant Consultant @relation(fields: [consultantId], references: [id])
   consultantId String
   client Client @relation(fields: [clientId], references: [id])
@@ -26,6 +37,7 @@ model PerformanceReview {
   countryId String
   dueDate DateTime
   clientEmail String
+  linkGenerate String?
   dateCreate DateTime @default(now())
   active Boolean @default(true)
 
