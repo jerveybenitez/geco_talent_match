@@ -19,8 +19,7 @@ import {
 import { Calendar, ArrowLeft, Send, FileSignature, Star, Link as LinkIcon } from "lucide-react";
 import { mockPerformanceReviews, PerformanceReview } from "../../../data/mockData";
 import { PerformanceReviewFormDialog } from "./PerformanceReviewFormDialog";
-import { LinkGeneratorDialog } from "./LinkGeneratorDialog";
-import { 
+import {
   LineChart, 
   Line, 
   XAxis, 
@@ -37,7 +36,6 @@ export function Performance() {
   const [clientRating, setClientRating] = useState(4);
   const [consultantRating, setConsultantRating] = useState(4);
   const [showCreateReview, setShowCreateReview] = useState(false);
-  const [showLinkGenerator, setShowLinkGenerator] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
 
   const performanceHistoryData = [

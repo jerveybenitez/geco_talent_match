@@ -221,6 +221,10 @@
         background-color: var(--card);
     }
   }
+
+  .bg-destructive {
+    background-color: var(--destructive);
+  }
 }
 
 /* Unlayered on purpose: Tailwind's utilities layer (e.g. the Dialog component's
@@ -230,4 +234,35 @@
   .contract-form-dialog {
     max-width: 45rem;
   }
+}
+
+/* Unlayered on purpose (see note above): Tailwind isn't generating hover-state
+   utilities for classes built on our semantic color tokens (bg-accent, bg-primary,
+   bg-secondary, bg-destructive, bg-muted, text-accent-foreground) anywhere in the
+   app, only for literal colors (e.g. hover:bg-red-600 works fine). That silently
+   breaks hover feedback on ghost/outline buttons, sidebar links, badges, and table
+   rows. Re-implement the exact hover utility classes those components use. */
+.hover\:bg-accent:hover {
+  background-color: var(--accent);
+}
+
+.hover\:text-accent-foreground:hover {
+  color: var(--accent-foreground);
+}
+
+.hover\:bg-primary\/90:hover {
+  background-color: var(--primary);
+}
+
+.hover\:bg-secondary\/80:hover,
+.hover\:bg-secondary\/90:hover {
+  background-color: var(--secondary);
+}
+
+.hover\:bg-destructive\/90:hover {
+  background-color: var(--destructive);
+}
+
+.hover\:bg-muted\/50:hover {
+  background-color: var(--muted);
 }
