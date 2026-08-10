@@ -126,6 +126,31 @@ export async function getPerformanceReviewsData(userId: string) {
     };
 }
 
+export async function getPerformanceReviewDetailData(id: string, userId: string) {
+    const countryIds = await getAdminCountryIds(userId);
+    if (!countryIds) {
+        return null;
+    }
+
+    const review = await prisma.performanceReview.findFirst({
+        where: { id, countryId: { in: countryIds } },
+        include: performanceReviewInclude,
+    });
+    if (!review) {
+        return null;
+    }
+
+    const consultantReviews = await prisma.performanceReview.findMany({
+        where: { consultantId: review.consultantId, countryId: { in: countryIds } },
+        include: performanceReviewInclude,
+    });
+
+    return {
+        review: mapPerformanceReview(review),
+        consultantReviews: consultantReviews.map(mapPerformanceReview),
+    };
+}
+
 export async function getPerformanceReviewItemById(id: string): Promise<PerformanceReviewItem | null> {
     const review = await prisma.performanceReview.findUnique({
         where: { id },
