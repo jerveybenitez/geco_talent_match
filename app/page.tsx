@@ -15,7 +15,8 @@ export default function Home() {
 
     if (!res.ok) return false;
 
-    router.push("/admin/dashboard");
+    const data = await res.json();
+    router.push(data.role === "user" ? "/talent/dashboard" : "/admin/dashboard");
     return true;
   };
 

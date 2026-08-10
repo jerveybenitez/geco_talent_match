@@ -32,7 +32,8 @@ export async function POST(request: Request) {
     path: "/",
   });
 
-  return NextResponse.json({ 
-    name: user.name 
+  return NextResponse.json({
+    name: user.name,
+    role: user.role,
   });
 }

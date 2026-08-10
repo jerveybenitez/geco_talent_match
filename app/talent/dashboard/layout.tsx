@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { DashboardShell } from "@/app/components/admin/DashboardShell";
+import { TalentShell } from "@/app/components/talent/TalentShell";
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function TalentDashboardLayout({ children }: { children: React.ReactNode }) {
   const sessionUser = await getCurrentUser();
 
   if (!sessionUser) {
@@ -17,7 +17,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
       email: true,
       role: true,
       image: true,
-      countriesHandled: { select: { countryCode: true } },
     },
   });
 
@@ -25,9 +24,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect("/");
   }
 
-  if (user.role === "user") {
-    redirect("/talent/dashboard");
+  if (user.role !== "user") {
+    redirect("/admin/dashboard");
   }
 
-  return <DashboardShell user={user}>{children}</DashboardShell>;
+  return <TalentShell user={user}>{children}</TalentShell>;
 }
