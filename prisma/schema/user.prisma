@@ -10,6 +10,13 @@ enum ConsultantStatus {
     Former
 }
 
+enum FluencyLevel {
+  basic
+  conversational
+  fluent
+  native
+}
+
 model User {
   id String @id @default(cuid())
   email String @unique
@@ -41,7 +48,7 @@ model Consultant {
   user User @relation(fields: [userId], references: [id])
   status ConsultantStatus @default(Available)
   skills Skills[]
-  languages Languages[]
+  languages ConsultantLanguage[] 
   industries Industries[]
   linkedin String?
   professionalBio String?
@@ -58,6 +65,16 @@ model Consultant {
   contracts Contract[]
   workHistory WorkHistory[]
   performanceReviews PerformanceReview[]
+}
+
+model ConsultantLanguage {
+  id String @id @default(cuid())
+  consultant Consultant @relation(fields: [consultantId], references: [id])
+  consultantId String
+  language Languages @relation(fields: [languageId], references: [id])
+  languageId String
+  fluency FluencyLevel
+  @@unique([consultantId, languageId])
 }
 
 model WorkHistory {

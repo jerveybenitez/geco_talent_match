@@ -9,6 +9,7 @@ interface TalentShellProps {
     name: string;
     email: string;
     image: string | null;
+    consultantId: string | null;
   };
   children: React.ReactNode;
 }
@@ -20,7 +21,7 @@ export function TalentShell({ user, children }: TalentShellProps) {
     <div className="min-h-screen bg-gray-50">
       <TalentHeader sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} user={user} />
       <div className="flex">
-        <TalentSidebar open={sidebarOpen} />
+        <TalentSidebar open={sidebarOpen} consultantId={user.consultantId} />
         {sidebarOpen && (
           <div
             className="fixed inset-0 bg-black/50 z-20 lg:hidden"

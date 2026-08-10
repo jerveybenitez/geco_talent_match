@@ -17,6 +17,7 @@ export default async function TalentDashboardLayout({ children }: { children: Re
       email: true,
       role: true,
       image: true,
+      consultant: { select: { id: true } },
     },
   });
 
@@ -28,5 +29,7 @@ export default async function TalentDashboardLayout({ children }: { children: Re
     redirect("/admin/dashboard");
   }
 
-  return <TalentShell user={user}>{children}</TalentShell>;
+  return (
+    <TalentShell user={{ ...user, consultantId: user.consultant?.id ?? null }}>{children}</TalentShell>
+  );
 }

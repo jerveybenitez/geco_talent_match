@@ -151,22 +151,23 @@ export function ConsultantProfile({ consultant, countries }: ConsultantProfilePr
               </CardContent>
             </Card>
 
-            {/* Sample data - languages aren't collected on the consultant form yet */}
             <Card>
               <CardHeader>
                 <CardTitle>Languages</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>English</span>
-                    <Badge variant="secondary">Native</Badge>
+                {consultant.languages.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No languages on record for this consultant.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {consultant.languages.map((language) => (
+                      <div key={language.id} className="flex justify-between">
+                        <span>{language.name}</span>
+                        <Badge variant="secondary" className="capitalize">{language.fluency}</Badge>
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex justify-between">
-                    <span>Mandarin</span>
-                    <Badge variant="secondary">Fluent</Badge>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
 

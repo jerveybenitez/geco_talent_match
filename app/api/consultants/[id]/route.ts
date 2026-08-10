@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
+import { resolveSkillIds } from "@/lib/consultantsData";
+import { parseUniqueTitleCaseNames } from "@/lib/textUtils";
 
 const STATUSES = ["Available", "Committed", "Former"] as const;
 
@@ -95,7 +97,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Country not found" }, { status: 400 });
   }
 
-  const skillNames = parseNames(skills);
+  const skillNames = parseUniqueTitleCaseNames(skills);
   const industryNames = parseNames(industries);
 
   const updated = await prisma.$transaction(async (tx) => {
@@ -104,14 +106,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       job = await tx.jobs.create({ data: { name: jobTitle } });
     }
 
-    const skillIds: string[] = [];
-    for (const skillName of skillNames) {
-      let skill = await tx.skills.findFirst({ where: { name: { equals: skillName, mode: "insensitive" } } });
-      if (!skill) {
-        skill = await tx.skills.create({ data: { name: skillName } });
-      }
-      skillIds.push(skill.id);
-    }
+    const skillIds = await resolveSkillIds(tx, skillNames);
 
     const industryIds: string[] = [];
     for (const industryName of industryNames) {

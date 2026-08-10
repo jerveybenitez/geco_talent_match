@@ -15,6 +15,7 @@ interface TalentHeaderUser {
   name: string;
   email: string;
   image: string | null;
+  consultantId: string | null;
 }
 
 interface TalentHeaderProps {
@@ -71,7 +72,10 @@ export function TalentHeader({ sidebarOpen, onToggleSidebar, user }: TalentHeade
                 <p className="font-medium">{user.name}</p>
                 <p className="text-xs text-muted-foreground">{user.email}</p>
               </div>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={!user.consultantId}
+                onClick={() => user.consultantId && router.push(`/talent/profile/${user.consultantId}`)}
+              >
                 <User className="mr-2 h-4 w-4" />
                 My Profile
               </DropdownMenuItem>

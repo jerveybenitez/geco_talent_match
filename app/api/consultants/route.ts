@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
+import { resolveSkillIds } from "@/lib/consultantsData";
+import { parseUniqueTitleCaseNames } from "@/lib/textUtils";
 
 const STATUSES = ["Available", "Committed", "Former"] as const;
 
@@ -89,7 +91,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Country not found" }, { status: 400 });
   }
 
-  const skillNames = parseNames(skills);
+  const skillNames = parseUniqueTitleCaseNames(skills);
   const industryNames = parseNames(industries);
   const hashedPassword = await bcrypt.hash(DEFAULT_CONSULTANT_PASSWORD, 10);
 
@@ -99,14 +101,7 @@ export async function POST(request: Request) {
       job = await tx.jobs.create({ data: { name: jobTitle } });
     }
 
-    const skillIds: string[] = [];
-    for (const skillName of skillNames) {
-      let skill = await tx.skills.findFirst({ where: { name: { equals: skillName, mode: "insensitive" } } });
-      if (!skill) {
-        skill = await tx.skills.create({ data: { name: skillName } });
-      }
-      skillIds.push(skill.id);
-    }
+    const skillIds = await resolveSkillIds(tx, skillNames);
 
     const industryIds: string[] = [];
     for (const industryName of industryNames) {

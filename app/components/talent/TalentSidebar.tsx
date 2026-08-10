@@ -2,22 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard } from "lucide-react";
+import { PlayCircle, User, TrendingUp, LayoutDashboard } from "lucide-react";
 import { Button } from "../ui/button";
-
-const navigationItems = [
-  { href: "/talent/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  // { href: "/talent/profile", label: "My Profile", icon: User },
-  // { href: "/talent/onboarding", label: "Onboarding", icon: PlayCircle },
-  // { href: "/talent/performance", label: "Performance Review", icon: TrendingUp },
-];
 
 interface TalentSidebarProps {
   open: boolean;
+  consultantId: string | null;
 }
 
-export function TalentSidebar({ open }: TalentSidebarProps) {
+export function TalentSidebar({ open, consultantId }: TalentSidebarProps) {
   const pathname = usePathname();
+
+  const navigationItems = [
+    { href: "/talent/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: consultantId ? `/talent/profile/${consultantId}` : null, label: "My Profile", icon: User },
+    // { href: "/talent/onboarding", label: "Onboarding", icon: PlayCircle },
+    // { href: "/talent/performance", label: "Performance Review", icon: TrendingUp },
+  ];
 
   return (
     <aside
@@ -30,18 +31,26 @@ export function TalentSidebar({ open }: TalentSidebarProps) {
       <nav className="p-4 space-y-2">
         {navigationItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const isActive = !!item.href && (pathname === item.href || pathname.startsWith(`${item.href}/`));
           return (
             <Button
-              key={item.href}
+              key={item.label}
               variant={isActive ? "default" : "ghost"}
               className="w-full justify-start"
-              asChild
+              disabled={!item.href}
+              asChild={!!item.href}
             >
-              <Link href={item.href}>
-                <Icon className="mr-2 h-4 w-4" />
-                {item.label}
-              </Link>
+              {item.href ? (
+                <Link href={item.href}>
+                  <Icon className="mr-2 h-4 w-4" />
+                  {item.label}
+                </Link>
+              ) : (
+                <span>
+                  <Icon className="mr-2 h-4 w-4" />
+                  {item.label}
+                </span>
+              )}
             </Button>
           );
         })}

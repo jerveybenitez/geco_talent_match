@@ -1,15 +1,24 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
 import { ArrowRight, CheckCircle2, Clock, User } from "lucide-react";
+import type { ProfileCompleteness } from "@/lib/profileCompleteness";
 
 interface TalentDashboardProps {
   talentName: string;
+  consultantId: string | null;
+  completeness: ProfileCompleteness;
 }
 
-export function TalentDashboard({ talentName }: TalentDashboardProps) {
+export function TalentDashboard({ talentName, consultantId, completeness }: TalentDashboardProps) {
+  const router = useRouter();
+  const goToProfile = () => {
+    if (consultantId) router.push(`/talent/profile/${consultantId}`);
+  };
+
   return (
     <div className="space-y-6">
       {/* Welcome Card */}
@@ -40,18 +49,19 @@ export function TalentDashboard({ talentName }: TalentDashboardProps) {
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Progress</span>
-                <span className="font-semibold text-blue-600">75%</span>
+                <span className="font-semibold text-blue-600">{completeness.percentage}%</span>
               </div>
-              <Progress value={75} className="h-2" />
+              <Progress value={completeness.percentage} className="h-2" />
             </div>
             <p className="text-sm text-muted-foreground">
               Complete your profile to unlock all features
             </p>
             <Button
               className="w-full"
-              disabled
+              onClick={goToProfile}
+              disabled={!consultantId}
             >
-              Complete Profile
+              {completeness.percentage >= 100 ? "Update Profile" : "Complete Profile"}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </CardContent>
@@ -133,7 +143,7 @@ export function TalentDashboard({ talentName }: TalentDashboardProps) {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
-            <Button variant="outline" disabled>
+            <Button variant="outline" onClick={goToProfile} disabled={!consultantId}>
               Update Profile
             </Button>
             <Button variant="outline" disabled>

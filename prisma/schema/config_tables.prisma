@@ -14,7 +14,7 @@ model Country{
 model Languages{
     id String @id @default(cuid())
     name String
-    consultants Consultant[]
+    consultants ConsultantLanguage[]
     active Boolean @default(true)
 }
 
