@@ -13,6 +13,12 @@ enum ReviewStatus {
   overdue
 }
 
+enum ReviewSendStatus{
+  unsent
+  sent
+  sendfailed
+}
+
 enum ClientReviewStatus {
   pending
   replied
@@ -57,5 +63,12 @@ model PerformanceReview {
   consultantKeyAchievements String?
   consultantChallengesFaced String?
   consultantFutureGoals String?
+
+  reviewSentStatus ReviewSendStatus @default(unsent)
+  failSendReason String?
+  createdBy User? @relation("PerformanceReviewCreatedBy", fields: [createdById], references: [id])
+  createdById String?
+  sentBy User? @relation("PerformanceReviewSentBy", fields: [sentById], references: [id])
+  sentById String?
 }
 

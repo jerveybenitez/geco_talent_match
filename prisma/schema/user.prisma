@@ -23,6 +23,8 @@ model User {
   role Role @default(user)
   sessions Session[]
   active Boolean @default(true)
+  performanceReviewsCreated PerformanceReview[] @relation("PerformanceReviewCreatedBy")
+  performanceReviewsSent PerformanceReview[] @relation("PerformanceReviewSentBy")
 }
 
 model Session {

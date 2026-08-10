@@ -59,6 +59,7 @@ export async function POST(request: Request) {
       countryId,
       dueDate: new Date(dueDate),
       clientEmail,
+      createdById: sessionUser.id,
     },
     select: { id: true },
   });
