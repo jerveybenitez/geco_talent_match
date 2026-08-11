@@ -73,7 +73,7 @@ export async function getConsultantsData(userId: string) {
       user: { select: { name: true, email: true, phone: true, image: true } },
       job: { select: { name: true } },
       country: { select: { name: true } },
-      skills: { select: { name: true } },
+      skills: { select: { skill: { select: { name: true } } } },
       industries: { select: { name: true } },
       contracts: {
         where: { active: true },
@@ -94,7 +94,7 @@ export async function getConsultantsData(userId: string) {
     city: consultant.city,
     country: consultant.country.name,
     status: consultant.status,
-    skills: consultant.skills.map((skill) => skill.name),
+    skills: consultant.skills.map((entry) => entry.skill.name),
     industries: consultant.industries.map((industry) => industry.name),
     contractExpiry: (consultant.contracts[0]?.contractendDate ?? consultant.availableTo).toISOString(),
   }));
@@ -118,7 +118,7 @@ export async function getConsultantById(id: string, adminUserId: string) {
       user: { select: { name: true, email: true, phone: true, image: true } },
       job: { select: { name: true } },
       country: { select: { name: true } },
-      skills: { select: { name: true } },
+      skills: { select: { skill: { select: { name: true } } } },
       industries: { select: { name: true } },
       languages: { select: { id: true, fluency: true, language: { select: { name: true } } } },
       contracts: {
@@ -147,7 +147,7 @@ export async function getConsultantById(id: string, adminUserId: string) {
     country: consultant.country.name,
     countryId: consultant.countryId,
     status: consultant.status,
-    skills: consultant.skills.map((skill) => skill.name),
+    skills: consultant.skills.map((entry) => entry.skill.name),
     industries: consultant.industries.map((industry) => industry.name),
     contractExpiry: (consultant.contracts[0]?.contractendDate ?? consultant.availableTo).toISOString(),
     bio: consultant.professionalBio,
@@ -185,6 +185,33 @@ export async function resolveSkillIds(tx: Prisma.TransactionClient, skillNames: 
     }
   }
   return ids;
+}
+
+/**
+ * Replaces a consultant's skills with the given list: resolves each skill name
+ * to a Skills row (creating/re-casing as needed) and syncs the ConsultantSkill
+ * join rows to match. Returns the resolved skill ids.
+ */
+export async function syncConsultantSkills(
+  tx: Prisma.TransactionClient,
+  consultantId: string,
+  skillNames: string[]
+): Promise<string[]> {
+  const skillIds = await resolveSkillIds(tx, skillNames);
+
+  for (const skillId of skillIds) {
+    await tx.consultantSkill.upsert({
+      where: { consultantId_skillId: { consultantId, skillId } },
+      update: {},
+      create: { consultantId, skillId },
+    });
+  }
+
+  await tx.consultantSkill.deleteMany({
+    where: { consultantId, skillId: { notIn: skillIds } },
+  });
+
+  return skillIds;
 }
 
 /**

@@ -28,7 +28,7 @@ model Industries{
 model Skills{
     id String @id @default(cuid())
     name String
-    consultants Consultant[]
+    consultants ConsultantSkill[]
     active Boolean @default(true)
 }
 

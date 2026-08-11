@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
 import {
-  resolveSkillIds,
   resolveIndustryIds,
   syncConsultantLanguages,
+  syncConsultantSkills,
   type ConsultantLanguageInput,
 } from "@/lib/consultantsData";
 import { getTalentProfileData } from "@/lib/talentProfileData";
@@ -94,7 +94,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       job = await tx.jobs.create({ data: { name: roleTitle } });
     }
 
-    const skillIds = await resolveSkillIds(tx, skillNames);
     const industryIds = await resolveIndustryIds(tx, industryNames);
 
     await tx.user.update({
@@ -110,11 +109,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         jobId: job.id,
         yearsOfExperience: yearsOfExperience ? Number(yearsOfExperience) : null,
         linkedin: linkedin || null,
-        skills: { set: skillIds.map((skillId) => ({ id: skillId })) },
         industries: { set: industryIds.map((industryId) => ({ id: industryId })) },
       },
     });
 
+    await syncConsultantSkills(tx, id, skillNames);
     await syncConsultantLanguages(tx, id, languageEntries);
   });
 

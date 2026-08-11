@@ -47,7 +47,7 @@ model Consultant {
   userId String @unique
   user User @relation(fields: [userId], references: [id])
   status ConsultantStatus @default(Available)
-  skills Skills[]
+  skills ConsultantSkill[]
   languages ConsultantLanguage[] 
   industries Industries[]
   linkedin String?
@@ -75,6 +75,15 @@ model ConsultantLanguage {
   languageId String
   fluency FluencyLevel
   @@unique([consultantId, languageId])
+}
+
+model ConsultantSkill {
+  id String @id @default(cuid())
+  consultant Consultant @relation(fields: [consultantId], references: [id])
+  consultantId String
+  skill Skills @relation(fields: [skillId], references: [id])
+  skillId String
+  @@unique([consultantId, skillId])
 }
 
 model WorkHistory {

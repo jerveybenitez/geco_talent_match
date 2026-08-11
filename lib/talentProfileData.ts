@@ -45,7 +45,7 @@ export async function getTalentProfileData(
     include: {
       user: { select: { name: true, email: true, phone: true } },
       job: { select: { name: true } },
-      skills: { select: { name: true } },
+      skills: { select: { skill: { select: { name: true } } } },
       industries: { select: { name: true } },
       languages: { select: { id: true, fluency: true, language: { select: { name: true } } } },
     },
@@ -65,7 +65,7 @@ export async function getTalentProfileData(
     roleTitle: consultant.job.name,
     yearsOfExperience: consultant.yearsOfExperience,
     linkedin: consultant.linkedin,
-    skills: consultant.skills.map((skill) => skill.name),
+    skills: consultant.skills.map((entry) => entry.skill.name),
     industries: consultant.industries.map((industry) => industry.name),
     languages: consultant.languages.map((entry) => ({
       id: entry.id,

@@ -133,7 +133,7 @@ export async function POST(request: Request) {
             yearsOfExperience: yearsOfExperience ? Number(yearsOfExperience) : null,
             availableFrom: new Date(availableFrom),
             availableTo: new Date(availableTo),
-            skills: { connect: skillIds.map((id) => ({ id })) },
+            skills: { create: skillIds.map((skillId) => ({ skillId })) },
             industries: { connect: industryIds.map((id) => ({ id })) },
           },
         },

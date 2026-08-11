@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
-import { resolveSkillIds } from "@/lib/consultantsData";
+import { syncConsultantSkills } from "@/lib/consultantsData";
 import { parseUniqueTitleCaseNames } from "@/lib/textUtils";
 
 const STATUSES = ["Available", "Committed", "Former"] as const;
@@ -106,8 +106,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       job = await tx.jobs.create({ data: { name: jobTitle } });
     }
 
-    const skillIds = await resolveSkillIds(tx, skillNames);
-
     const industryIds: string[] = [];
     for (const industryName of industryNames) {
       let industry = await tx.industries.findFirst({ where: { name: { equals: industryName, mode: "insensitive" } } });
@@ -117,7 +115,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       industryIds.push(industry.id);
     }
 
-    return tx.user.update({
+    const result = await tx.user.update({
       where: { id: existing.userId },
       data: {
         name,
@@ -136,7 +134,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
             yearsOfExperience: yearsOfExperience ? Number(yearsOfExperience) : null,
             availableFrom: new Date(availableFrom),
             availableTo: new Date(availableTo),
-            skills: { set: skillIds.map((id) => ({ id })) },
             industries: { set: industryIds.map((id) => ({ id })) },
           },
         },
@@ -152,6 +149,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         },
       },
     });
+
+    await syncConsultantSkills(tx, id, skillNames);
+
+    return result;
   });
 
   return NextResponse.json(updated, { status: 200 });
