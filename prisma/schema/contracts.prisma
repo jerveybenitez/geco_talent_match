@@ -52,6 +52,7 @@ model Contract {
   contractendDate DateTime
   deploymentNote String?
   allowances ContractAllowance[]
+  documents Document[]
   dateCreate DateTime @default(now())
   active Boolean @default(true)
 }

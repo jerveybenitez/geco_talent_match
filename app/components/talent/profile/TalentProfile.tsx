@@ -473,8 +473,8 @@ export function TalentProfile({ profile, countries }: TalentProfileProps) {
             <Label>Resume / CV</Label>
             <div className="border-2 border-dashed rounded-lg p-6 text-center text-muted-foreground">
               <Upload className="h-8 w-8 mx-auto mb-2" />
-              <p className="text-sm font-medium">Document uploads are coming soon</p>
-              <p className="text-xs mt-1">You&apos;ll be able to upload your resume/CV here</p>
+              <p className="text-sm font-medium">Document Uploads</p>
+              <p className="text-xs mt-1">You can upload your CV or certificates here</p>
             </div>
           </div>
         </CardContent>

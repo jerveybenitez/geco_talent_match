@@ -266,3 +266,11 @@
 .hover\:bg-muted\/50:hover {
   background-color: var(--muted);
 }
+
+.focus\:bg-accent:focus {
+  background-color: var(--accent);
+}
+
+.focus\:text-accent-foreground:focus {
+  color: var(--accent-foreground);
+}

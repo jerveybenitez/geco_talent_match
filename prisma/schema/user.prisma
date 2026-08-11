@@ -65,6 +65,7 @@ model Consultant {
   contracts Contract[]
   workHistory WorkHistory[]
   performanceReviews PerformanceReview[]
+  documents Document[]
 }
 
 model ConsultantLanguage {

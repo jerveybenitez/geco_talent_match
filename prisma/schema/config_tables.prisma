@@ -38,3 +38,20 @@ model Jobs{
     consultants Consultant[]
     active Boolean @default(true)
 }
+
+model Document {
+    id String @id @default(cuid())
+    fileName String @unique               // file name in the google drive directory
+    displayFileName String                // file name displayed in the UI and when downloading
+    fileExtension String                  // pdf/docx/pdf whatever
+    mimeType String
+    driveFileId String @unique
+    driveFolderId String?
+
+    consultantId String?
+    consultant Consultant? @relation(fields: [consultantId], references: [id])
+
+    contractId String?
+    contract Contract? @relation(fields: [contractId], references: [id])
+    dateCreate DateTime @default(now())
+}
